@@ -1,0 +1,152 @@
+import { Link } from 'react-router-dom'
+import { useCatalog } from '../hooks/useCatalog'
+import { useLogs } from '../hooks/useLogs'
+import { useAuth } from '../context/AuthContext.jsx'
+import { WEEKDAYS } from '../data/seedData'
+import { sessionForDay, metaFor } from '../lib/sessions'
+import { toISODate, weekdayKey, weekDates, formatLong } from '../lib/dates'
+import Spinner from '../components/Spinner.jsx'
+
+export default function Today() {
+  const { user } = useAuth()
+  const { exercises, activeRoutines, loading } = useCatalog()
+  const { logs, loading: logsLoading } = useLogs()
+
+  if (loading || logsLoading) return <Spinner />
+
+  const today = new Date()
+  const todayKey = weekdayKey(today)
+  const todayISO = toISODate(today)
+  const day = sessionForDay(activeRoutines, todayKey)
+  const meta = metaFor(day.sessionType)
+  const todayLog = logs.find((l) => l.date === todayISO)
+
+  // This week's adherence: count planned (non-rest) weekdays across active routines
+  const week = weekDates(today).map(toISODate)
+  const plannedDays = WEEKDAYS.filter(
+    (w) => sessionForDay(activeRoutines, w.key).sessionType !== 'rest',
+  ).length
+  const trainedThisWeek = logs.filter((l) => week.includes(l.date) && l.trained).length
+
+  const firstName = (user?.displayName ?? '').split(' ')[0] || 'atleta'
+  const hasActive = activeRoutines.length > 0
+
+  return (
+    <div className="space-y-5">
+      <div>
+        <p className="text-sm font-medium text-slate-400">{formatLong(today)}</p>
+        <h1 className="neon-title text-2xl text-brand-300">Hola, {firstName}</h1>
+      </div>
+
+      {!hasActive && (
+        <div className="card border-neon-amber/40 bg-neon-amber/10 p-4 text-sm text-neon-amber">
+          No tienes rutinas activas.{' '}
+          <Link to="/rutinas" className="font-semibold underline">
+            Activa una rutina
+          </Link>{' '}
+          para ver tu sesión de hoy.
+        </div>
+      )}
+
+      {/* Today's session */}
+      <div className="card overflow-hidden">
+        <div className={`${meta.color} px-5 py-2 text-xs font-bold uppercase tracking-widest text-ink-950`}>
+          Sesión de hoy · {meta.label}
+        </div>
+        <div className="p-5">
+          <h2 className="font-display text-xl font-bold text-slate-100">{day.label}</h2>
+          <p className="mt-1 text-sm text-slate-400">{day.content}</p>
+
+          {day.sessionType !== 'rest' && day.blocks.length > 0 ? (
+            <>
+              <div className="mt-4 space-y-1.5">
+                {day.blocks.slice(0, 5).map((b, i) => {
+                  const ex = exercises.find((e) => e.id === b.exerciseId)
+                  return (
+                    <div key={i} className="flex items-center justify-between text-sm">
+                      <span className="text-slate-300">{ex?.name ?? b.exerciseId}</span>
+                      <span className="font-mono font-semibold text-brand-300">
+                        {b.sets}×{b.repsText}
+                      </span>
+                    </div>
+                  )
+                })}
+                {day.blocks.length > 5 && (
+                  <p className="text-xs text-slate-400">+{day.blocks.length - 5} más…</p>
+                )}
+              </div>
+
+              <Link to={`/sesion/${todayKey}`} className="btn-primary mt-5 w-full">
+                {todayLog ? 'Editar registro de hoy' : 'Registrar entrenamiento'}
+              </Link>
+              {todayLog?.trained && (
+                <p className="mt-2 text-center text-sm font-medium text-brand-300 neon-text">
+                  ✓ Registrado · {todayLog.durationMinutes ?? 0} min
+                </p>
+              )}
+            </>
+          ) : (
+            <p className="mt-4 rounded-xl border border-slate-500/15 bg-ink-900/60 px-4 py-3 text-sm text-slate-400">
+              Día de descanso. Aprovecha para recuperarte 💤
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Week adherence quick stat */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="card p-4">
+          <p className="label">Esta semana</p>
+          <p className="mt-1 font-display text-3xl font-extrabold text-brand-300 neon-text">
+            {trainedThisWeek}
+            <span className="text-base font-semibold text-slate-500">/{plannedDays}</span>
+          </p>
+          <p className="text-xs text-slate-500">sesiones completadas</p>
+        </div>
+        <div className="card p-4">
+          <p className="label">Total registros</p>
+          <p className="mt-1 font-display text-3xl font-extrabold text-neon-pink neon-text-pink">{logs.filter((l) => l.trained).length}</p>
+          <p className="text-xs text-slate-500">entrenamientos</p>
+        </div>
+      </div>
+
+      {/* Week strip */}
+      <div className="card p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <p className="label">Tu semana</p>
+          <Link to="/cronograma" className="text-xs font-semibold text-brand-400 hover:text-brand-300">
+            Ver todo
+          </Link>
+        </div>
+        <div className="flex justify-between">
+          {weekDates(today).map((d) => {
+            const iso = toISODate(d)
+            const wk = weekdayKey(d)
+            const dayDef = sessionForDay(activeRoutines, wk)
+            const m = metaFor(dayDef.sessionType)
+            const log = logs.find((l) => l.date === iso)
+            const isToday = iso === todayISO
+            return (
+              <Link
+                to={`/sesion/${wk}`}
+                key={iso}
+                className="flex flex-1 flex-col items-center gap-1.5"
+              >
+                <span className={`text-[11px] font-semibold ${isToday ? 'text-brand-300 neon-text' : 'text-slate-500'}`}>
+                  {WEEKDAYS.find((w) => w.key === wk)?.short}
+                </span>
+                <span
+                  className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold ${
+                    isToday ? 'ring-2 ring-brand-400 ring-offset-2 ring-offset-ink-850' : ''
+                  } ${log?.trained ? `${m.color} text-ink-950 shadow-neon` : 'bg-ink-800 text-slate-500'}`}
+                >
+                  {log?.trained ? '✓' : d.getDate()}
+                </span>
+              </Link>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
