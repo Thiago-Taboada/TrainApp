@@ -1,18 +1,25 @@
 // Firebase initialization for TrainApp.
-// Note: these config values are safe to expose in client code. Data is
-// protected by Firestore security rules, not by hiding this config.
+// Config is read from environment variables (see .env / .env.example).
+// These client values aren't secret, but we keep them out of the repo.
+// Real data protection comes from Firestore security rules.
 import { initializeApp } from 'firebase/app'
 import { getAuth, GoogleAuthProvider } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyCNeGeT48b7oHfBY01VxDAY8hbeKGfnn5U',
-  authDomain: 'trainapp-bce35.firebaseapp.com',
-  projectId: 'trainapp-bce35',
-  storageBucket: 'trainapp-bce35.firebasestorage.app',
-  messagingSenderId: '991879746134',
-  appId: '1:991879746134:web:753d38d4722b60d188a1f7',
-  measurementId: 'G-NG58SMJ3KF',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
+}
+
+if (!firebaseConfig.apiKey) {
+  throw new Error(
+    'Falta la configuración de Firebase. Copia .env.example a .env y completa los valores.',
+  )
 }
 
 const app = initializeApp(firebaseConfig)
