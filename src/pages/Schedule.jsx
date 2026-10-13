@@ -113,34 +113,40 @@ export default function Schedule() {
                 </div>
               </button>
 
-              {/* Expandable panel */}
-              {isOpen && (
-                <div className="border-t border-brand-500/15 px-4 pb-4 pt-3">
-                  {isRest ? (
-                    <p className="text-sm text-slate-400">Día de descanso. No hay ejercicios previstos.</p>
-                  ) : (
-                    <>
-                      <ul className="space-y-1.5">
-                        {dayDef.blocks.map((b, i) => {
-                          const ex = exercises.find((e) => e.id === b.exerciseId)
-                          return (
-                            <li key={i} className="flex items-center justify-between text-sm">
-                              <span className="text-slate-300">{ex?.name ?? b.exerciseId}</span>
-                              <span className="font-mono font-semibold text-brand-300">
-                                {b.sets}×{b.repsText}
-                                {b.perSide ? ' /lado' : ''}
-                              </span>
-                            </li>
-                          )
-                        })}
-                      </ul>
-                      <Link to={`/sesion/${wk}?date=${iso}`} className="btn-primary mt-4 w-full">
-                        {log?.trained ? 'Editar sesión' : 'Registrar sesión'}
-                      </Link>
-                    </>
-                  )}
+              {/* Expandable panel — animated via grid-rows 0fr -> 1fr */}
+              <div
+                className={`grid transition-all duration-300 ease-out ${
+                  isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                }`}
+              >
+                <div className="overflow-hidden">
+                  <div className="border-t border-brand-500/15 px-4 pb-4 pt-3">
+                    {isRest ? (
+                      <p className="text-sm text-slate-400">Día de descanso. No hay ejercicios previstos.</p>
+                    ) : (
+                      <>
+                        <ul className="space-y-1.5">
+                          {dayDef.blocks.map((b, i) => {
+                            const ex = exercises.find((e) => e.id === b.exerciseId)
+                            return (
+                              <li key={i} className="flex items-center justify-between text-sm">
+                                <span className="text-slate-300">{ex?.name ?? b.exerciseId}</span>
+                                <span className="font-mono font-semibold text-brand-300">
+                                  {b.sets}×{b.repsText}
+                                  {b.perSide ? ' /lado' : ''}
+                                </span>
+                              </li>
+                            )
+                          })}
+                        </ul>
+                        <Link to={`/sesion/${wk}?date=${iso}`} className="btn-primary mt-4 w-full">
+                          {log?.trained ? 'Editar sesión' : 'Registrar sesión'}
+                        </Link>
+                      </>
+                    )}
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
           )
         })}
