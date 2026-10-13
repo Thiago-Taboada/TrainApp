@@ -6,12 +6,13 @@ import { WEEKDAYS } from '../data/seedData'
 import { sessionForDay, metaFor } from '../lib/sessions'
 import { formatLong, fromISODate, toISODate } from '../lib/dates'
 import Spinner from '../components/Spinner.jsx'
+import { StatusDot } from '../components/icons.jsx'
 
 // Session fatigue options (global feeling of the session).
 const FATIGUE = [
-  { value: 'fresh', emoji: '🟢', label: 'Súper bien' },
-  { value: 'ok', emoji: '🟡', label: 'Cansado pero salió' },
-  { value: 'spent', emoji: '🔴', label: 'Agotado' },
+  { value: 'fresh', tone: 'fresh', label: 'Súper bien' },
+  { value: 'ok', tone: 'ok', label: 'Cansado pero salió' },
+  { value: 'spent', tone: 'spent', label: 'Agotado' },
 ]
 
 // Build an empty entries array from a routine day's blocks.
@@ -224,7 +225,7 @@ export default function SessionLog() {
                         : 'border-slate-500/25 text-slate-400 hover:border-brand-400/40 hover:text-brand-200'
                     }`}
                   >
-                    <span className="text-xl">{f.emoji}</span>
+                    <StatusDot tone={f.tone} className="mb-0.5" />
                     {f.label}
                   </button>
                 ))}

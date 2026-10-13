@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useCatalog } from '../hooks/useCatalog'
 import { useLogs } from '../hooks/useLogs'
 import { WEEKDAYS } from '../data/seedData'
+import { CheckIcon } from '../components/icons.jsx'
 import { sessionForDay, metaFor } from '../lib/sessions'
 import { addDays, startOfWeek, toISODate, weekDates, weekdayKey } from '../lib/dates'
 import Spinner from '../components/Spinner.jsx'
@@ -89,7 +90,7 @@ export default function Schedule() {
                 <div className="flex items-center gap-3 pl-3">
                   {log?.trained ? (
                     <div className="text-right">
-                      <span className="chip border-brand-400/50 bg-brand-500/15 text-brand-300 neon-text">✓ Hecho</span>
+                      <span className="chip border-brand-400/50 bg-brand-500/15 text-brand-300 neon-text"><CheckIcon className="h-3 w-3" /> Hecho</span>
                       {log.durationMinutes ? (
                         <p className="mt-1 text-xs text-slate-400">{log.durationMinutes} min</p>
                       ) : null}

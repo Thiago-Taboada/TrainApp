@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useCatalog } from '../hooks/useCatalog'
 import { useLogs } from '../hooks/useLogs'
 import { useAuth } from '../context/AuthContext.jsx'
+import { CheckIcon, RestIcon } from '../components/icons.jsx'
 import { WEEKDAYS } from '../data/seedData'
 import { sessionForDay, metaFor } from '../lib/sessions'
 import { toISODate, weekdayKey, weekDates, formatLong } from '../lib/dates'
@@ -80,14 +81,16 @@ export default function Today() {
                 {todayLog ? 'Editar registro de hoy' : 'Registrar entrenamiento'}
               </Link>
               {todayLog?.trained && (
-                <p className="mt-2 text-center text-sm font-medium text-brand-300 neon-text">
-                  ✓ Registrado · {todayLog.durationMinutes ?? 0} min
+                <p className="mt-2 flex items-center justify-center gap-1.5 text-sm font-medium text-brand-300 neon-text">
+                  <CheckIcon className="h-4 w-4" />
+                  Registrado · {todayLog.durationMinutes ?? 0} min
                 </p>
               )}
             </>
           ) : (
-            <p className="mt-4 rounded-xl border border-slate-500/15 bg-ink-900/60 px-4 py-3 text-sm text-slate-400">
-              Día de descanso. Aprovecha para recuperarte 💤
+            <p className="mt-4 flex items-center gap-2 rounded-xl border border-slate-500/15 bg-ink-900/60 px-4 py-3 text-sm text-slate-400">
+              <RestIcon className="h-4 w-4 shrink-0 text-brand-400" />
+              Día de descanso. Aprovecha para recuperarte.
             </p>
           )}
         </div>
@@ -140,7 +143,7 @@ export default function Today() {
                     isToday ? 'ring-2 ring-brand-400 ring-offset-2 ring-offset-ink-850' : ''
                   } ${log?.trained ? `${m.color} text-ink-950 shadow-neon` : 'bg-ink-800 text-slate-500'}`}
                 >
-                  {log?.trained ? '✓' : d.getDate()}
+                  {log?.trained ? <CheckIcon className="h-4 w-4" /> : d.getDate()}
                 </span>
               </Link>
             )

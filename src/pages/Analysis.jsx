@@ -22,6 +22,7 @@ import { WEEKDAYS } from '../data/seedData'
 import { sessionForDay } from '../lib/sessions'
 import { addDays, startOfWeek, toISODate, weekId } from '../lib/dates'
 import Spinner from '../components/Spinner.jsx'
+import { ChartIcon } from '../components/icons.jsx'
 
 const FATIGUE_SCORE = { fresh: 1, ok: 2, spent: 3 }
 const FATIGUE_LABEL = { 1: 'Súper bien', 2: 'Cansado', 3: 'Agotado' }
@@ -67,7 +68,7 @@ export default function Analysis() {
       <div className="space-y-5">
         <Header />
         <div className="card p-10 text-center">
-          <p className="text-4xl">📊</p>
+          <ChartIcon className="mx-auto h-12 w-12 text-brand-400/80" />
           <p className="mt-3 font-semibold text-slate-200">Aún no hay datos para analizar</p>
           <p className="mt-1 text-sm text-slate-400">
             Registra algunas sesiones y aquí verás tu constancia, evolución y nivel de esfuerzo.
@@ -340,7 +341,7 @@ function EffortFatigue({ logs }) {
   }, [logs])
 
   return (
-    <Section title="Esfuerzo y fatiga" hint="Tu nivel de agotamiento reportado por sesión. Vigila picos sostenidos de 🔴.">
+    <Section title="Esfuerzo y fatiga" hint="Tu nivel de agotamiento reportado por sesión. Vigila picos sostenidos de agotamiento.">
       <ResponsiveContainer width="100%" height={200}>
         <AreaChart data={data} margin={{ top: 10, right: 5, left: -20, bottom: 0 }}>
           <defs>
