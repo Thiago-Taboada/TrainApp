@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useState } from 'react'
+import {
+  createContext,
+  createElement,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react'
 import {
   collection,
   deleteDoc,
@@ -12,35 +19,58 @@ import { db } from '../lib/firebase'
 import { useAuth } from '../context/AuthContext.jsx'
 
 // Realtime subscription to the current user's session logs.
-// Doc id == ISO date (one session per day keeps things simple and lets us
-// upsert a day's check-in easily).
-export function useLogs() {
+// Doc id == ISO date (one session per day), which makes a day's check-in a
+// simple upsert. Exposed via Context so the subscription is opened once for
+// the whole app instead of per client-side navigation.
+const LogsContext = createContext(null)
+
+export function LogsProvider({ children }) {
   const { user } = useAuth()
   const [logs, setLogs] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!user) return
+    if (!user) {
+      setLogs([])
+      setLoading(false)
+      return
+    }
+
+    setLoading(true)
+    const releaseTimer = setTimeout(() => setLoading(false), 1500)
+    const release = () => {
+      clearTimeout(releaseTimer)
+      setLoading(false)
+    }
+
     const q = query(collection(db, 'users', user.uid, 'logs'), orderBy('date', 'desc'))
     const unsub = onSnapshot(
       q,
       (snap) => {
         setLogs(snap.docs.map((d) => ({ id: d.id, ...d.data() })))
-        setLoading(false)
+        release()
       },
       (err) => {
         console.error('useLogs', err)
-        setLoading(false)
+        release()
       },
     )
-    return unsub
+
+    return () => {
+      clearTimeout(releaseTimer)
+      unsub()
+    }
   }, [user])
 
   const saveLog = useCallback(
     async (log) => {
       if (!user) throw new Error('No autenticado')
       const id = log.id ?? log.date // date-keyed
-      await setDoc(doc(db, 'users', user.uid, 'logs', id), { ...log, id, updatedAt: Date.now() }, { merge: true })
+      await setDoc(
+        doc(db, 'users', user.uid, 'logs', id),
+        { ...log, id, updatedAt: Date.now() },
+        { merge: true },
+      )
       return id
     },
     [user],
@@ -54,7 +84,12 @@ export function useLogs() {
     [user],
   )
 
-  const getLog = useCallback((id) => logs.find((l) => l.id === id) ?? null, [logs])
+  const value = { logs, loading, saveLog, deleteLog }
+  return createElement(LogsContext.Provider, { value }, children)
+}
 
-  return { logs, loading, saveLog, deleteLog, getLog }
+export function useLogs() {
+  const ctx = useContext(LogsContext)
+  if (!ctx) throw new Error('useLogs must be used within LogsProvider')
+  return ctx
 }

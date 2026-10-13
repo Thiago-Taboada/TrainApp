@@ -20,16 +20,7 @@ export default function Layout({ children }) {
       <header className="sticky top-0 z-20 border-b border-brand-500/20 bg-ink-950/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-brand-400/50 bg-ink-900 shadow-neon">
-              <svg viewBox="0 0 48 48" className="h-5 w-5 fill-brand-400">
-                <rect x="9" y="21" width="5" height="6" rx="1.5" />
-                <rect x="34" y="21" width="5" height="6" rx="1.5" />
-                <rect x="14" y="18" width="4" height="12" rx="1.5" />
-                <rect x="30" y="18" width="4" height="12" rx="1.5" />
-                <rect x="18" y="22.5" width="12" height="3" rx="1.5" />
-              </svg>
-            </div>
-            <span className="neon-title text-lg text-brand-300">TrainApp</span>
+            <span className="brand-font text-2xl leading-none text-brand-300">Train App</span>
             <span className="ml-1 hidden font-mono text-xs uppercase tracking-widest text-neon-pink sm:inline">
               // {current.label}
             </span>

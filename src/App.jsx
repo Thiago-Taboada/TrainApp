@@ -1,5 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './context/AuthContext.jsx'
+import { CatalogProvider } from './hooks/useCatalog'
+import { LogsProvider } from './hooks/useLogs'
 import Layout from './components/Layout.jsx'
 import Spinner from './components/Spinner.jsx'
 import Login from './pages/Login.jsx'
@@ -27,21 +29,25 @@ export default function App() {
   if (!user) return <Login />
 
   return (
-    <Layout>
-      <Routes>
-        <Route path="/" element={<Today />} />
-        <Route path="/biblioteca" element={<Library />} />
-        <Route path="/biblioteca/:exerciseId" element={<ExerciseDetail />} />
-        <Route path="/ejercicios/nuevo" element={<ExerciseEditor />} />
-        <Route path="/ejercicios/:exerciseId/editar" element={<ExerciseEditor />} />
-        <Route path="/rutinas" element={<Routines />} />
-        <Route path="/rutinas/nueva" element={<RoutineEditor />} />
-        <Route path="/rutinas/:routineId" element={<RoutineEditor />} />
-        <Route path="/cronograma" element={<Schedule />} />
-        <Route path="/sesion/:weekday" element={<SessionLog />} />
-        <Route path="/analisis" element={<Analysis />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Layout>
+    <CatalogProvider>
+      <LogsProvider>
+        <Layout>
+        <Routes>
+          <Route path="/" element={<Today />} />
+          <Route path="/biblioteca" element={<Library />} />
+          <Route path="/biblioteca/:exerciseId" element={<ExerciseDetail />} />
+          <Route path="/ejercicios/nuevo" element={<ExerciseEditor />} />
+          <Route path="/ejercicios/:exerciseId/editar" element={<ExerciseEditor />} />
+          <Route path="/rutinas" element={<Routines />} />
+          <Route path="/rutinas/nueva" element={<RoutineEditor />} />
+          <Route path="/rutinas/:routineId" element={<RoutineEditor />} />
+          <Route path="/cronograma" element={<Schedule />} />
+          <Route path="/sesion/:weekday" element={<SessionLog />} />
+          <Route path="/analisis" element={<Analysis />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+        </Layout>
+      </LogsProvider>
+    </CatalogProvider>
   )
 }

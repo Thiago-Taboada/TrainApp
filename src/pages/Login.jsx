@@ -12,21 +12,12 @@ export default function Login() {
 
       <div className="relative w-full max-w-sm rounded-2xl border border-brand-500/30 bg-ink-850/80 p-8 shadow-neon-soft backdrop-blur-md">
         <div className="mb-7 flex flex-col items-center text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-brand-400/50 bg-ink-900 shadow-neon">
-            <svg viewBox="0 0 48 48" className="h-10 w-10 fill-brand-400">
-              <rect x="9" y="21" width="5" height="6" rx="1.5" />
-              <rect x="34" y="21" width="5" height="6" rx="1.5" />
-              <rect x="14" y="18" width="4" height="12" rx="1.5" />
-              <rect x="30" y="18" width="4" height="12" rx="1.5" />
-              <rect x="18" y="22.5" width="12" height="3" rx="1.5" />
-            </svg>
-          </div>
-          <h1 className="neon-title animate-flicker text-3xl text-brand-300">TrainApp</h1>
+          <h1 className="brand-font animate-flicker text-6xl text-brand-300">Train App</h1>
           <p className="mt-2 font-mono text-xs uppercase tracking-widest text-neon-pink">
-            // fuerza · flexibilidad · patadas altas
+            // Libera tu potencial
           </p>
           <p className="mt-3 text-sm text-slate-400">
-            Registra, mide y evoluciona. Tu progreso, en modo neón.
+            Registra, mide y evoluciona.
           </p>
         </div>
 

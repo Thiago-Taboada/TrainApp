@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Cyber Brush';
+  src: url('./assets/fonts/CyberBrush.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
   html {
     -webkit-tap-highlight-color: transparent;
@@ -77,6 +85,14 @@
 
   .label {
     @apply block text-[10px] font-bold uppercase tracking-[0.18em] text-brand-400/80;
+  }
+
+  /* Site name — custom "Cyber Brush" display font */
+  .brand-font {
+    font-family: 'Cyber Brush', 'Orbitron', sans-serif;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    text-shadow: 0 0 10px rgba(0, 240, 255, 0.5), 0 0 30px rgba(0, 240, 255, 0.2);
   }
 
   /* Neon heading */

@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import {
   collection,
   deleteDoc,
@@ -7,79 +15,103 @@ import {
   serverTimestamp,
   setDoc,
 } from 'firebase/firestore'
+import { createElement } from 'react'
 import { db } from '../lib/firebase'
 import { useAuth } from '../context/AuthContext.jsx'
 import { EXERCISES, ROUTINE_TEMPLATE } from '../data/seedData'
 
 // -----------------------------------------------------------------------------
-// useCatalog
-// Single source of truth for exercises + routines. It merges:
+// Catalog = single source of truth for exercises + routines. It merges:
 //   - BASE catalog: the PDF exercises + template routine (local, read-only).
-//   - USER data:   exercises & routines the user creates (Firestore, private,
-//                  under users/{uid}/...).
-// It also tracks which routines are active (users/{uid}.activeRoutineIds).
+//   - USER data:   exercises & routines the user creates (Firestore, private).
+//   - activeRoutineIds (users/{uid}.activeRoutineIds).
+//
+// Exposed through a Context so the Firestore subscriptions are opened ONCE for
+// the whole app (not re-created on every client-side navigation, which was
+// causing the loader to hang between pages).
 // -----------------------------------------------------------------------------
-export function useCatalog() {
+const CatalogContext = createContext(null)
+
+export function CatalogProvider({ children }) {
   const { user } = useAuth()
   const [userExercises, setUserExercises] = useState([])
   const [userRoutines, setUserRoutines] = useState([])
   const [activeRoutineIds, setActiveRoutineIds] = useState([ROUTINE_TEMPLATE.id])
   const [loading, setLoading] = useState(true)
 
-  // Subscribe to user exercises
-  useEffect(() => {
-    if (!user) return
-    const unsub = onSnapshot(
-      collection(db, 'users', user.uid, 'exercises'),
-      (snap) => setUserExercises(snap.docs.map((d) => ({ id: d.id, ...d.data(), isCustom: true }))),
-      (err) => console.error('userExercises', err),
-    )
-    return unsub
-  }, [user])
+  // Keep latest activeRoutineIds for callbacks without re-creating them.
+  const activeRef = useRef(activeRoutineIds)
+  activeRef.current = activeRoutineIds
 
-  // Subscribe to user routines
   useEffect(() => {
-    if (!user) return
-    const unsub = onSnapshot(
+    if (!user) {
+      // Signed out: reset to defaults and stop loading.
+      setUserExercises([])
+      setUserRoutines([])
+      setActiveRoutineIds([ROUTINE_TEMPLATE.id])
+      setLoading(false)
+      return
+    }
+
+    setLoading(true)
+    // Safety net: never let the loader hang. Local seed data is enough to
+    // render, so release the UI shortly even if a snapshot is slow.
+    const releaseTimer = setTimeout(() => setLoading(false), 1500)
+    const release = () => {
+      clearTimeout(releaseTimer)
+      setLoading(false)
+    }
+
+    const unsubExercises = onSnapshot(
+      collection(db, 'users', user.uid, 'exercises'),
+      (snap) => {
+        setUserExercises(snap.docs.map((d) => ({ id: d.id, ...d.data(), isCustom: true })))
+        release()
+      },
+      (err) => {
+        console.error('userExercises', err)
+        release()
+      },
+    )
+
+    const unsubRoutines = onSnapshot(
       collection(db, 'users', user.uid, 'routines'),
       (snap) => setUserRoutines(snap.docs.map((d) => ({ id: d.id, ...d.data(), isCustom: true }))),
       (err) => console.error('userRoutines', err),
     )
-    return unsub
-  }, [user])
 
-  // Subscribe to the profile doc for activeRoutineIds
-  useEffect(() => {
-    if (!user) return
-    const unsub = onSnapshot(
+    const unsubProfile = onSnapshot(
       doc(db, 'users', user.uid),
       (snap) => {
         const data = snap.data()
-        if (data?.activeRoutineIds) setActiveRoutineIds(data.activeRoutineIds)
-        else setActiveRoutineIds([ROUTINE_TEMPLATE.id]) // default: template active
-        setLoading(false)
+        setActiveRoutineIds(data?.activeRoutineIds ?? [ROUTINE_TEMPLATE.id])
+        release()
       },
       (err) => {
         console.error('profile', err)
-        setLoading(false)
+        release()
       },
     )
-    return unsub
+
+    return () => {
+      clearTimeout(releaseTimer)
+      unsubExercises()
+      unsubRoutines()
+      unsubProfile()
+    }
   }, [user])
 
   // Merged collections (base + custom)
   const exercises = useMemo(() => {
-    const base = EXERCISES.map((e) => ({ ...e, isCustom: false }))
-    // user exercises override base ones with the same id
-    const byId = new Map(base.map((e) => [e.id, e]))
-    for (const e of userExercises) byId.set(e.id, e)
+    const byId = new Map(EXERCISES.map((e) => [e.id, { ...e, isCustom: false }]))
+    for (const e of userExercises) byId.set(e.id, e) // custom overrides base
     return [...byId.values()]
   }, [userExercises])
 
-  const routines = useMemo(() => {
-    const base = [{ ...ROUTINE_TEMPLATE, isCustom: false }]
-    return [...base, ...userRoutines]
-  }, [userRoutines])
+  const routines = useMemo(
+    () => [{ ...ROUTINE_TEMPLATE, isCustom: false }, ...userRoutines],
+    [userRoutines],
+  )
 
   const activeRoutines = useMemo(
     () => routines.filter((r) => activeRoutineIds.includes(r.id)),
@@ -126,22 +158,13 @@ export function useCatalog() {
     [user],
   )
 
-  const deleteRoutine = useCallback(
-    async (id) => {
-      if (!user) throw new Error('No autenticado')
-      await deleteDoc(doc(db, 'users', user.uid, 'routines', id))
-      // also drop it from active list
-      await setActiveRoutine(id, false)
-    },
-    [user], // eslint-disable-line react-hooks/exhaustive-deps
-  )
-
   const setActiveRoutine = useCallback(
     async (routineId, active) => {
       if (!user) throw new Error('No autenticado')
+      const current = activeRef.current
       const next = active
-        ? [...new Set([...activeRoutineIds, routineId])]
-        : activeRoutineIds.filter((id) => id !== routineId)
+        ? [...new Set([...current, routineId])]
+        : current.filter((id) => id !== routineId)
       setActiveRoutineIds(next) // optimistic
       await setDoc(
         doc(db, 'users', user.uid),
@@ -149,10 +172,19 @@ export function useCatalog() {
         { merge: true },
       )
     },
-    [user, activeRoutineIds],
+    [user],
   )
 
-  return {
+  const deleteRoutine = useCallback(
+    async (id) => {
+      if (!user) throw new Error('No autenticado')
+      await deleteDoc(doc(db, 'users', user.uid, 'routines', id))
+      await setActiveRoutine(id, false) // drop from active list
+    },
+    [user, setActiveRoutine],
+  )
+
+  const value = {
     loading,
     exercises,
     routines,
@@ -164,6 +196,14 @@ export function useCatalog() {
     deleteRoutine,
     setActiveRoutine,
   }
+
+  return createElement(CatalogContext.Provider, { value }, children)
+}
+
+export function useCatalog() {
+  const ctx = useContext(CatalogContext)
+  if (!ctx) throw new Error('useCatalog must be used within CatalogProvider')
+  return ctx
 }
 
 export function slugify(str) {
