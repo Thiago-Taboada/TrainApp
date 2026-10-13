@@ -9,9 +9,10 @@ import { addDays, startOfWeek, toISODate, weekDates, weekdayKey } from '../lib/d
 import Spinner from '../components/Spinner.jsx'
 
 export default function Schedule() {
-  const { activeRoutines, loading } = useCatalog()
+  const { activeRoutines, exercises, loading } = useCatalog()
   const { logs, loading: logsLoading } = useLogs()
   const [weekOffset, setWeekOffset] = useState(0)
+  const [openISO, setOpenISO] = useState(() => toISODate(new Date()))
 
   if (loading || logsLoading) return <Spinner />
 
@@ -63,49 +64,103 @@ export default function Schedule() {
           const isToday = iso === todayISO
           const isRest = dayDef.sessionType === 'rest'
 
+          const isOpen = openISO === iso
+
           return (
-            <Link
+            <div
               key={iso}
-              to={`/sesion/${wk}?date=${iso}`}
-              className={`card flex items-stretch overflow-hidden transition hover:border-brand-400/60 hover:shadow-neon-soft ${
+              className={`card overflow-hidden transition ${
                 isToday ? 'border-brand-400/60 shadow-neon-soft' : ''
               }`}
             >
-              <div className={`w-1.5 shrink-0 ${meta.color}`} />
-              <div className="flex flex-1 items-center justify-between p-4">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-bold text-slate-100">{WEEKDAYS.find((w) => w.key === wk)?.label}</p>
-                    {isToday && (
-                      <span className="chip border-brand-400/50 bg-brand-500/15 text-brand-300 neon-text">Hoy</span>
+              {/* Header (toggle) */}
+              <button
+                onClick={() => setOpenISO(isOpen ? '' : iso)}
+                className="flex w-full items-stretch text-left"
+                aria-expanded={isOpen}
+              >
+                <div className={`w-1.5 shrink-0 ${meta.color}`} />
+                <div className="flex flex-1 items-center justify-between p-4">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-bold text-slate-100">{WEEKDAYS.find((w) => w.key === wk)?.label}</p>
+                      {isToday && (
+                        <span className="chip border-brand-400/50 bg-brand-500/15 text-brand-300 neon-text">Hoy</span>
+                      )}
+                    </div>
+                    <p className="truncate text-sm text-slate-400">{dayDef.label}</p>
+                    {!isRest && (
+                      <p className="mt-1 text-xs text-slate-400">
+                        {dayDef.blocks.length} ejercicios
+                      </p>
                     )}
                   </div>
-                  <p className="truncate text-sm text-slate-400">{dayDef.label}</p>
-                  {!isRest && (
-                    <p className="mt-1 text-xs text-slate-400">
-                      {dayDef.blocks.length} ejercicios
-                    </p>
-                  )}
+                  <div className="flex items-center gap-3 pl-3">
+                    {log?.trained ? (
+                      <div className="text-right">
+                        <span className="chip border-brand-400/50 bg-brand-500/15 text-brand-300 neon-text"><CheckIcon className="h-3 w-3" /> Hecho</span>
+                        {log.durationMinutes ? (
+                          <p className="mt-1 text-xs text-slate-400">{log.durationMinutes} min</p>
+                        ) : null}
+                      </div>
+                    ) : isRest ? (
+                      <span className="chip border-slate-500/20 bg-ink-700/60 text-slate-400">Descanso</span>
+                    ) : (
+                      <span className="chip border-slate-500/20 bg-ink-700/60 text-slate-400">Pendiente</span>
+                    )}
+                    <ChevronIcon open={isOpen} />
+                  </div>
                 </div>
-                <div className="flex items-center gap-3 pl-3">
-                  {log?.trained ? (
-                    <div className="text-right">
-                      <span className="chip border-brand-400/50 bg-brand-500/15 text-brand-300 neon-text"><CheckIcon className="h-3 w-3" /> Hecho</span>
-                      {log.durationMinutes ? (
-                        <p className="mt-1 text-xs text-slate-400">{log.durationMinutes} min</p>
-                      ) : null}
-                    </div>
-                  ) : isRest ? (
-                    <span className="chip border-slate-500/20 bg-ink-700/60 text-slate-400">Descanso</span>
+              </button>
+
+              {/* Expandable panel */}
+              {isOpen && (
+                <div className="border-t border-brand-500/15 px-4 pb-4 pt-3">
+                  {isRest ? (
+                    <p className="text-sm text-slate-400">Día de descanso. No hay ejercicios previstos.</p>
                   ) : (
-                    <span className="chip border-slate-500/20 bg-ink-700/60 text-slate-400">Pendiente</span>
+                    <>
+                      <ul className="space-y-1.5">
+                        {dayDef.blocks.map((b, i) => {
+                          const ex = exercises.find((e) => e.id === b.exerciseId)
+                          return (
+                            <li key={i} className="flex items-center justify-between text-sm">
+                              <span className="text-slate-300">{ex?.name ?? b.exerciseId}</span>
+                              <span className="font-mono font-semibold text-brand-300">
+                                {b.sets}×{b.repsText}
+                                {b.perSide ? ' /lado' : ''}
+                              </span>
+                            </li>
+                          )
+                        })}
+                      </ul>
+                      <Link to={`/sesion/${wk}?date=${iso}`} className="btn-primary mt-4 w-full">
+                        {log?.trained ? 'Editar sesión' : 'Registrar sesión'}
+                      </Link>
+                    </>
                   )}
                 </div>
-              </div>
-            </Link>
+              )}
+            </div>
           )
         })}
       </div>
     </div>
+  )
+}
+
+function ChevronIcon({ open }) {
+  return (
+    <svg
+      className={`h-4 w-4 shrink-0 text-slate-500 transition-transform ${open ? 'rotate-180' : ''}`}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
   )
 }

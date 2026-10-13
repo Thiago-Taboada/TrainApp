@@ -33,15 +33,10 @@ export default function Routines() {
         </div>
       </div>
 
-      {/* Create buttons */}
-      <div className="grid grid-cols-2 gap-3">
-        <Link to="/rutinas/nueva" className="btn-primary">
-          + Nueva rutina
-        </Link>
-        <Link to="/ejercicios/nuevo" className="btn-ghost">
-          + Nuevo ejercicio
-        </Link>
-      </div>
+      {/* Create button */}
+      <Link to="/rutinas/nueva" className="btn-primary w-full">
+        + Nueva rutina
+      </Link>
 
       <div className="space-y-3">
         {routines.map((routine) => {
