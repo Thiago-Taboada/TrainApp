@@ -15,8 +15,15 @@ const FATIGUE = [
   { value: 'spent', tone: 'spent', label: 'Agotado' },
 ]
 
+// Per-set effort (replaces the old numeric RIR). Qualitative, easier to judge.
+const EFFORT = [
+  { value: 'max', tone: 'spent', label: 'Al límite', hint: 'Casi al fallo (0-2 en reserva)' },
+  { value: 'hard', tone: 'ok', label: 'Exigente', hint: 'Costó, con margen (3-5 en reserva)' },
+  { value: 'easy', tone: 'fresh', label: 'Cómodo', hint: 'Con bastante margen (+5)' },
+]
+
 function emptySet() {
-  return { reps: '', weightKg: '', timeSeconds: '', rir: '', toFailure: false, done: false }
+  return { reps: '', weightKg: '', timeSeconds: '', effort: '', toFailure: false, done: false }
 }
 
 // Build an empty entries array from a routine day's blocks.
@@ -103,8 +110,8 @@ export default function SessionLog() {
     setEntries((prev) => {
       const next = structuredClone(prev)
       const last = next[entryIdx].sets.at(-1) ?? emptySet()
-      // carry over weight/time but reset the per-set flags
-      next[entryIdx].sets.push({ ...last, toFailure: false, done: false })
+      // carry over weight but reset per-set reps/effort/failure/done
+      next[entryIdx].sets.push({ ...last, reps: '', effort: '', toFailure: false, done: false })
       return next
     })
   }
@@ -131,6 +138,7 @@ export default function SessionLog() {
                 s.reps !== '' ||
                 s.weightKg !== '' ||
                 s.timeSeconds !== '' ||
+                s.effort !== '' ||
                 s.toFailure ||
                 s.done,
             )
@@ -138,7 +146,7 @@ export default function SessionLog() {
               reps: num(s.reps),
               weightKg: num(s.weightKg),
               timeSeconds: num(s.timeSeconds),
-              rir: num(s.rir),
+              effort: s.effort || null,
               toFailure: !!s.toFailure,
               done: !!s.done,
             })),
@@ -317,12 +325,13 @@ function ExerciseEntry({ entry, exercise, block, onUpdateSet, onAddSet, onRemove
       <div className="space-y-2">
         {/* Column headers depend on tracking type */}
         {tracking === 'reps' && (
-          <div className="grid grid-cols-[28px_1fr_1fr_1fr_auto] items-center gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">
-            <span>#</span>
-            <span>Reps</span>
-            <span>Peso kg</span>
-            <span>RIR</span>
-            <span className="text-center">Fallo</span>
+          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">
+            <span className="w-5 shrink-0">#</span>
+            <span className="w-0 flex-1 text-center">Reps</span>
+            <span className="w-0 flex-1 text-center">Peso kg</span>
+            <span className="shrink-0 text-center" style={{ width: '7.75rem' }}>Esfuerzo</span>
+            <span className="w-8 shrink-0 text-center">Fallo</span>
+            <span className="w-7 shrink-0" />
           </div>
         )}
         {tracking === 'time' && (
@@ -344,6 +353,18 @@ function ExerciseEntry({ entry, exercise, block, onUpdateSet, onAddSet, onRemove
           />
         ))}
       </div>
+
+      {tracking === 'reps' && (
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-500">
+          <span className="font-semibold uppercase tracking-wide">Esfuerzo:</span>
+          {EFFORT.map((opt) => (
+            <span key={opt.value} className="inline-flex items-center gap-1">
+              <StatusDot tone={opt.tone} className="!h-2.5 !w-2.5" />
+              {opt.label}
+            </span>
+          ))}
+        </div>
+      )}
 
       <button onClick={onAddSet} className="mt-3 text-xs font-semibold text-brand-400 hover:text-brand-300">
         + Añadir serie
@@ -401,46 +422,56 @@ function SetRow({ index, set, tracking, onUpdate, onRemove }) {
 
   // tracking === 'reps'
   return (
-    <div className="grid grid-cols-[28px_1fr_1fr_1fr_auto] items-center gap-2">
-      <span className="text-sm font-semibold text-slate-400">{index + 1}</span>
+    <div className="flex items-center gap-2">
+      <span className="w-5 shrink-0 text-sm font-semibold text-slate-400">{index + 1}</span>
       <input
         type="number"
         inputMode="numeric"
         value={set.reps}
         onChange={(e) => onUpdate('reps', e.target.value)}
-        placeholder="—"
-        className="input px-2 py-1.5 text-center"
+        placeholder="reps"
+        className="input w-0 flex-1 px-2 py-1.5 text-center"
       />
       <input
         type="number"
         inputMode="decimal"
         value={set.weightKg}
         onChange={(e) => onUpdate('weightKg', e.target.value)}
-        placeholder="opc."
+        placeholder="kg"
         title="Peso extra (opcional). Vacío = peso corporal."
-        className="input px-2 py-1.5 text-center"
+        className="input w-0 flex-1 px-2 py-1.5 text-center"
       />
-      <input
-        type="number"
-        inputMode="numeric"
-        value={set.rir}
-        onChange={(e) => onUpdate('rir', e.target.value)}
-        placeholder="1-3"
-        title="Repeticiones en reserva (las que podrías haber hecho más)"
-        className="input px-2 py-1.5 text-center"
-      />
-      <div className="flex items-center gap-1">
-        <button
-          onClick={() => onUpdate('toFailure', !set.toFailure)}
-          title="Llegué al fallo"
-          className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold transition ${
-            set.toFailure ? 'bg-neon-red text-white shadow-neon-pink' : 'bg-ink-700 text-slate-400'
-          }`}
-        >
-          F
-        </button>
-        {removeBtn}
+      {/* Effort selector */}
+      <div className="flex shrink-0 items-center gap-1">
+        {EFFORT.map((opt) => {
+          const active = set.effort === opt.value
+          return (
+            <button
+              key={opt.value}
+              onClick={() => onUpdate('effort', active ? '' : opt.value)}
+              title={`${opt.label} — ${opt.hint}`}
+              className={`flex h-8 w-8 items-center justify-center rounded-lg border transition ${
+                active
+                  ? 'border-current bg-ink-700'
+                  : 'border-slate-500/25 hover:border-slate-400/50'
+              }`}
+            >
+              <StatusDot tone={opt.tone} className={active ? '' : 'opacity-40'} />
+            </button>
+          )
+        })}
       </div>
+      {/* Reached failure */}
+      <button
+        onClick={() => onUpdate('toFailure', !set.toFailure)}
+        title="Llegué al fallo (no pude hacer ni una repetición más)"
+        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold transition ${
+          set.toFailure ? 'bg-neon-red text-white shadow-neon-pink' : 'bg-ink-700 text-slate-400'
+        }`}
+      >
+        F
+      </button>
+      {removeBtn}
     </div>
   )
 }
