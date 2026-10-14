@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useCatalog } from '../hooks/useCatalog'
 import { useLogs } from '../hooks/useLogs'
 import { WEEKDAYS } from '../data/seedData'
-import { CheckIcon } from '../components/icons.jsx'
+import { CheckIcon, PlayIcon } from '../components/icons.jsx'
 import { sessionForDay, metaFor } from '../lib/sessions'
 import { addDays, startOfWeek, toISODate, weekDates, weekdayKey } from '../lib/dates'
 import Spinner from '../components/Spinner.jsx'
@@ -139,7 +139,10 @@ export default function Schedule() {
                             )
                           })}
                         </ul>
-                        <Link to={`/sesion/${wk}?date=${iso}`} className="btn-primary mt-4 w-full">
+                        <Link to={`/entrenar/${wk}?date=${iso}`} className="btn-primary mt-4 w-full py-3 text-base">
+                          <PlayIcon /> Empezar entrenamiento
+                        </Link>
+                        <Link to={`/sesion/${wk}?date=${iso}`} className="btn-ghost mt-2 w-full">
                           {log?.trained ? 'Editar sesión' : 'Registrar sesión'}
                         </Link>
                       </>
