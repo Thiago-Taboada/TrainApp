@@ -16,6 +16,16 @@ export const CATEGORIES = {
   activeFlex: 'Fuerza activa específica',
 }
 
+// How each exercise is measured when logging a set.
+//   reps  -> reps required, weight optional (bodyweight by default)
+//   time  -> seconds held (planks, stretches, holds)
+//   check -> just mark the set as done (dynamic mobility)
+export const TRACKING_TYPES = {
+  reps: 'Repeticiones',
+  time: 'Tiempo',
+  check: 'Hecho',
+}
+
 export const MUSCLE_GROUPS = {
   pull: 'Tracción',
   push: 'Empuje',
@@ -33,8 +43,9 @@ export const MUSCLE_GROUPS = {
 // ---------------------------------------------------------------------------
 // Exercises (unique movements)
 // id is a stable slug so logs can reference it forever.
+// `tracking` is materialized below (see deriveTracking).
 // ---------------------------------------------------------------------------
-export const EXERCISES = [
+const EXERCISES_RAW = [
   // --- Fuerza general -------------------------------------------------------
   {
     id: 'dominadas-pronas',
@@ -355,6 +366,30 @@ export const EXERCISES = [
     cues: ['Mantén equilibrio y respiración', 'Rodilla alta'],
   },
 ]
+
+// Exercises measured by time held (seconds) rather than reps.
+const TIME_BASED_IDS = new Set([
+  'plancha',
+  'chamber-hold',
+  'mariposa',
+  'rana',
+  'flexor-cadera-media-rodilla',
+  'isquiotibiales-talon-apoyado',
+  'apertura-sentada-v',
+  'rotacion-cadera-90-90',
+])
+
+// Derive a sensible default tracking type per exercise.
+function deriveTracking(ex) {
+  if (TIME_BASED_IDS.has(ex.id)) return 'time'
+  if (ex.category === 'mobility') return 'check'
+  return 'reps'
+}
+
+export const EXERCISES = EXERCISES_RAW.map((ex) => ({
+  ...ex,
+  tracking: ex.tracking ?? deriveTracking(ex),
+}))
 
 // ---------------------------------------------------------------------------
 // Routine template (from the PDF). sets/reps/rest live here.

@@ -15,17 +15,16 @@ const FATIGUE = [
   { value: 'spent', tone: 'spent', label: 'Agotado' },
 ]
 
+function emptySet() {
+  return { reps: '', weightKg: '', timeSeconds: '', rir: '', toFailure: false, done: false }
+}
+
 // Build an empty entries array from a routine day's blocks.
 function buildEntries(day) {
   if (!day) return []
   return day.blocks.map((b) => ({
     exerciseId: b.exerciseId,
-    sets: Array.from({ length: b.sets || 1 }, () => ({
-      reps: '',
-      weightKg: '',
-      rir: '',
-      toFailure: false,
-    })),
+    sets: Array.from({ length: b.sets || 1 }, emptySet),
   }))
 }
 
@@ -103,8 +102,9 @@ export default function SessionLog() {
   function addSet(entryIdx) {
     setEntries((prev) => {
       const next = structuredClone(prev)
-      const last = next[entryIdx].sets.at(-1) ?? { reps: '', weightKg: '', rir: '', toFailure: false }
-      next[entryIdx].sets.push({ ...last, toFailure: false })
+      const last = next[entryIdx].sets.at(-1) ?? emptySet()
+      // carry over weight/time but reset the per-set flags
+      next[entryIdx].sets.push({ ...last, toFailure: false, done: false })
       return next
     })
   }
@@ -121,16 +121,26 @@ export default function SessionLog() {
     setSaving(true)
     try {
       // Clean entries: numbers where possible, drop fully-empty sets.
+      const num = (v) => (v === '' || v == null ? null : Number(v))
       const cleanEntries = entries
         .map((e) => ({
           exerciseId: e.exerciseId,
           sets: e.sets
-            .filter((s) => s.reps !== '' || s.weightKg !== '' || s.toFailure)
+            .filter(
+              (s) =>
+                s.reps !== '' ||
+                s.weightKg !== '' ||
+                s.timeSeconds !== '' ||
+                s.toFailure ||
+                s.done,
+            )
             .map((s) => ({
-              reps: s.reps === '' ? null : Number(s.reps),
-              weightKg: s.weightKg === '' ? null : Number(s.weightKg),
-              rir: s.rir === '' ? null : Number(s.rir),
+              reps: num(s.reps),
+              weightKg: num(s.weightKg),
+              timeSeconds: num(s.timeSeconds),
+              rir: num(s.rir),
               toFailure: !!s.toFailure,
+              done: !!s.done,
             })),
         }))
         .filter((e) => e.sets.length > 0)
@@ -239,91 +249,17 @@ export default function SessionLog() {
               <h2 className="text-sm font-bold uppercase tracking-wide text-slate-400">
                 Ejercicios ({entries.length})
               </h2>
-              {entries.map((entry, ei) => {
-                const ex = exercises.find((e) => e.id === entry.exerciseId)
-                const block = day.blocks.find((b) => b.exerciseId === entry.exerciseId)
-                return (
-                  <div key={entry.exerciseId + ei} className="card p-4">
-                    <div className="mb-3 flex items-start justify-between gap-2">
-                      <div>
-                        <Link to={`/biblioteca/${entry.exerciseId}`} className="font-semibold text-slate-200 hover:text-brand-300">
-                          {ex?.name ?? entry.exerciseId}
-                        </Link>
-                        {block && (
-                          <p className="text-xs text-slate-400">
-                            Objetivo: {block.sets}×{block.repsText}
-                            {block.perSide ? ' /lado' : ''}
-                            {block.restText && block.restText !== '—' ? ` · desc. ${block.restText}` : ''}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Set rows */}
-                    <div className="space-y-2">
-                      <div className="grid grid-cols-[28px_1fr_1fr_1fr_auto] items-center gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">
-                        <span>#</span>
-                        <span>Reps</span>
-                        <span>Peso kg</span>
-                        <span>RIR</span>
-                        <span className="text-center">Fallo</span>
-                      </div>
-                      {entry.sets.map((set, si) => (
-                        <div key={si} className="grid grid-cols-[28px_1fr_1fr_1fr_auto] items-center gap-2">
-                          <span className="text-sm font-semibold text-slate-400">{si + 1}</span>
-                          <input
-                            type="number"
-                            inputMode="numeric"
-                            value={set.reps}
-                            onChange={(e) => updateSet(ei, si, 'reps', e.target.value)}
-                            placeholder="—"
-                            className="input px-2 py-1.5 text-center"
-                          />
-                          <input
-                            type="number"
-                            inputMode="decimal"
-                            value={set.weightKg}
-                            onChange={(e) => updateSet(ei, si, 'weightKg', e.target.value)}
-                            placeholder="—"
-                            className="input px-2 py-1.5 text-center"
-                          />
-                          <input
-                            type="number"
-                            inputMode="numeric"
-                            value={set.rir}
-                            onChange={(e) => updateSet(ei, si, 'rir', e.target.value)}
-                            placeholder="1-3"
-                            title="Repeticiones en reserva (las que podrías haber hecho más)"
-                            className="input px-2 py-1.5 text-center"
-                          />
-                          <div className="flex items-center gap-1">
-                            <button
-                              onClick={() => updateSet(ei, si, 'toFailure', !set.toFailure)}
-                              title="Llegué al fallo"
-                              className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold transition ${
-                                set.toFailure ? 'bg-neon-red text-white shadow-neon-pink' : 'bg-ink-700 text-slate-400'
-                              }`}
-                            >
-                              F
-                            </button>
-                            <button
-                              onClick={() => removeSet(ei, si)}
-                              className="flex h-8 w-7 items-center justify-center rounded-lg text-slate-500 hover:bg-ink-700 hover:text-neon-red"
-                              title="Quitar serie"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <button onClick={() => addSet(ei)} className="mt-3 text-xs font-semibold text-brand-400 hover:text-brand-300">
-                      + Añadir serie
-                    </button>
-                  </div>
-                )
-              })}
+              {entries.map((entry, ei) => (
+                <ExerciseEntry
+                  key={entry.exerciseId + ei}
+                  entry={entry}
+                  exercise={exercises.find((e) => e.id === entry.exerciseId)}
+                  block={day.blocks.find((b) => b.exerciseId === entry.exerciseId)}
+                  onUpdateSet={(si, field, value) => updateSet(ei, si, field, value)}
+                  onAddSet={() => addSet(ei)}
+                  onRemoveSet={(si) => removeSet(ei, si)}
+                />
+              ))}
             </div>
           )}
 
@@ -351,6 +287,159 @@ export default function SessionLog() {
             Eliminar
           </button>
         )}
+      </div>
+    </div>
+  )
+}
+
+// Renders one exercise with its set rows, adapted to the exercise's tracking
+// type: reps (reps + optional weight), time (seconds), or check (done toggle).
+function ExerciseEntry({ entry, exercise, block, onUpdateSet, onAddSet, onRemoveSet }) {
+  const tracking = exercise?.tracking ?? 'reps'
+
+  return (
+    <div className="card p-4">
+      <div className="mb-3 flex items-start justify-between gap-2">
+        <div>
+          <Link to={`/biblioteca/${entry.exerciseId}`} className="font-semibold text-slate-200 hover:text-brand-300">
+            {exercise?.name ?? entry.exerciseId}
+          </Link>
+          {block && (
+            <p className="text-xs text-slate-400">
+              Objetivo: {block.sets}×{block.repsText}
+              {block.perSide ? ' /lado' : ''}
+              {block.restText && block.restText !== '—' ? ` · desc. ${block.restText}` : ''}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        {/* Column headers depend on tracking type */}
+        {tracking === 'reps' && (
+          <div className="grid grid-cols-[28px_1fr_1fr_1fr_auto] items-center gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">
+            <span>#</span>
+            <span>Reps</span>
+            <span>Peso kg</span>
+            <span>RIR</span>
+            <span className="text-center">Fallo</span>
+          </div>
+        )}
+        {tracking === 'time' && (
+          <div className="grid grid-cols-[28px_1fr_auto] items-center gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">
+            <span>#</span>
+            <span>Tiempo (s)</span>
+            <span className="text-center">Quitar</span>
+          </div>
+        )}
+
+        {entry.sets.map((set, si) => (
+          <SetRow
+            key={si}
+            index={si}
+            set={set}
+            tracking={tracking}
+            onUpdate={(field, value) => onUpdateSet(si, field, value)}
+            onRemove={() => onRemoveSet(si)}
+          />
+        ))}
+      </div>
+
+      <button onClick={onAddSet} className="mt-3 text-xs font-semibold text-brand-400 hover:text-brand-300">
+        + Añadir serie
+      </button>
+    </div>
+  )
+}
+
+function SetRow({ index, set, tracking, onUpdate, onRemove }) {
+  const removeBtn = (
+    <button
+      onClick={onRemove}
+      className="flex h-8 w-7 items-center justify-center rounded-lg text-slate-500 hover:bg-ink-700 hover:text-neon-red"
+      title="Quitar serie"
+    >
+      ×
+    </button>
+  )
+
+  if (tracking === 'check') {
+    return (
+      <div className="flex items-center gap-3">
+        <span className="w-7 text-sm font-semibold text-slate-400">{index + 1}</span>
+        <button
+          onClick={() => onUpdate('done', !set.done)}
+          className={`flex flex-1 items-center justify-center gap-2 rounded-lg border py-2 text-sm font-semibold transition ${
+            set.done
+              ? 'border-brand-400 bg-brand-500/15 text-brand-300 shadow-neon'
+              : 'border-slate-500/25 text-slate-400 hover:border-brand-400/40'
+          }`}
+        >
+          {set.done ? '✓ Hecho' : 'Marcar como hecho'}
+        </button>
+        {removeBtn}
+      </div>
+    )
+  }
+
+  if (tracking === 'time') {
+    return (
+      <div className="grid grid-cols-[28px_1fr_auto] items-center gap-2">
+        <span className="text-sm font-semibold text-slate-400">{index + 1}</span>
+        <input
+          type="number"
+          inputMode="numeric"
+          value={set.timeSeconds}
+          onChange={(e) => onUpdate('timeSeconds', e.target.value)}
+          placeholder="—"
+          className="input px-2 py-1.5 text-center"
+        />
+        <div className="flex justify-center">{removeBtn}</div>
+      </div>
+    )
+  }
+
+  // tracking === 'reps'
+  return (
+    <div className="grid grid-cols-[28px_1fr_1fr_1fr_auto] items-center gap-2">
+      <span className="text-sm font-semibold text-slate-400">{index + 1}</span>
+      <input
+        type="number"
+        inputMode="numeric"
+        value={set.reps}
+        onChange={(e) => onUpdate('reps', e.target.value)}
+        placeholder="—"
+        className="input px-2 py-1.5 text-center"
+      />
+      <input
+        type="number"
+        inputMode="decimal"
+        value={set.weightKg}
+        onChange={(e) => onUpdate('weightKg', e.target.value)}
+        placeholder="opc."
+        title="Peso extra (opcional). Vacío = peso corporal."
+        className="input px-2 py-1.5 text-center"
+      />
+      <input
+        type="number"
+        inputMode="numeric"
+        value={set.rir}
+        onChange={(e) => onUpdate('rir', e.target.value)}
+        placeholder="1-3"
+        title="Repeticiones en reserva (las que podrías haber hecho más)"
+        className="input px-2 py-1.5 text-center"
+      />
+      <div className="flex items-center gap-1">
+        <button
+          onClick={() => onUpdate('toFailure', !set.toFailure)}
+          title="Llegué al fallo"
+          className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold transition ${
+            set.toFailure ? 'bg-neon-red text-white shadow-neon-pink' : 'bg-ink-700 text-slate-400'
+          }`}
+        >
+          F
+        </button>
+        {removeBtn}
       </div>
     </div>
   )

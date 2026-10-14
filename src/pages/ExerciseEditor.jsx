@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useCatalog } from '../hooks/useCatalog'
-import { CATEGORIES, MUSCLE_GROUPS } from '../data/seedData'
+import { CATEGORIES, MUSCLE_GROUPS, TRACKING_TYPES } from '../data/seedData'
 import Spinner from '../components/Spinner.jsx'
 
 const EMPTY = {
   name: '',
   category: 'strength',
+  tracking: 'reps',
   muscleGroups: [],
   equipment: '',
   description: '',
@@ -31,6 +32,7 @@ export default function ExerciseEditor() {
         setForm({
           name: ex.name ?? '',
           category: ex.category ?? 'strength',
+          tracking: ex.tracking ?? 'reps',
           muscleGroups: ex.muscleGroups ?? [],
           equipment: (ex.equipment ?? []).join(', '),
           description: ex.description ?? '',
@@ -68,6 +70,7 @@ export default function ExerciseEditor() {
         id: editing ? exerciseId : undefined,
         name: form.name.trim(),
         category: form.category,
+        tracking: form.tracking,
         muscleGroups: form.muscleGroups,
         equipment: splitList(form.equipment, ','),
         description: form.description.trim(),
@@ -128,6 +131,25 @@ export default function ExerciseEditor() {
               <option key={k} value={k}>{v}</option>
             ))}
           </select>
+        </div>
+
+        <div>
+          <label className="label mb-1.5">Cómo se registra</label>
+          <select
+            value={form.tracking}
+            onChange={(e) => setForm({ ...form, tracking: e.target.value })}
+            disabled={!canEdit}
+            className="input"
+          >
+            {Object.entries(TRACKING_TYPES).map(([k, v]) => (
+              <option key={k} value={k}>{v}</option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-slate-500">
+            {form.tracking === 'reps' && 'Repeticiones (el peso es opcional).'}
+            {form.tracking === 'time' && 'Tiempo en segundos (planchas, estiramientos).'}
+            {form.tracking === 'check' && 'Solo marcar la serie como hecha.'}
+          </p>
         </div>
 
         <div>
