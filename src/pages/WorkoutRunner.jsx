@@ -240,18 +240,18 @@ function RestView({ remaining, total, nextStep, onSkip, onAddTime, meta }) {
 
       {/* Ring timer */}
       <div className="relative mx-auto my-5 h-44 w-44">
-        <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="45" fill="none" stroke="#1c2743" strokeWidth="6" />
+        <svg className="h-full w-full -rotate-90 overflow-visible" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="40" fill="none" stroke="#1c2743" strokeWidth="6" />
           <circle
             cx="50"
             cy="50"
-            r="45"
+            r="40"
             fill="none"
             stroke="#ffb020"
             strokeWidth="6"
             strokeLinecap="round"
-            strokeDasharray={2 * Math.PI * 45}
-            strokeDashoffset={(2 * Math.PI * 45 * pct) / 100}
+            strokeDasharray={2 * Math.PI * 40}
+            strokeDashoffset={(2 * Math.PI * 40 * pct) / 100}
             style={{ transition: 'stroke-dashoffset 1s linear', filter: 'drop-shadow(0 0 6px rgba(255,176,32,0.6))' }}
           />
         </svg>
