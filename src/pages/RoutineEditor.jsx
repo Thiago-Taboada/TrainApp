@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useCatalog } from '../hooks/useCatalog'
 import { CATEGORIES, SESSION_TYPE_META, WEEKDAYS } from '../data/seedData'
+import { formatRest } from '../lib/sessions'
 import Spinner from '../components/Spinner.jsx'
 
 const SESSION_TYPES = [
@@ -78,7 +79,7 @@ export default function RoutineEditor() {
     if (!exerciseId) return
     updateDayBlocks(weekday, (blocks) => [
       ...blocks,
-      { exerciseId, sets: 3, repsText: '8-12', perSide: false, restText: '60-120 s' },
+      { exerciseId, sets: 3, repsText: '8-12', perSide: false, restSeconds: 60 },
     ])
   }
 
@@ -109,13 +110,17 @@ export default function RoutineEditor() {
         sessionType: d.blocks.length === 0 && d.sessionType !== 'rest' ? d.sessionType : d.sessionType,
         label: d.label?.trim() || defaultLabel(d.sessionType),
         content: d.content?.trim() || '',
-        blocks: d.blocks.map((b) => ({
-          exerciseId: b.exerciseId,
-          sets: Number(b.sets) || 1,
-          repsText: String(b.repsText || '').trim() || '-',
-          perSide: !!b.perSide,
-          restText: String(b.restText || '').trim() || '—',
-        })),
+        blocks: d.blocks.map((b) => {
+          const restSeconds = Math.max(0, Number(b.restSeconds) || 0)
+          return {
+            exerciseId: b.exerciseId,
+            sets: Number(b.sets) || 1,
+            repsText: String(b.repsText || '').trim() || '-',
+            perSide: !!b.perSide,
+            restSeconds,
+            restText: restSeconds > 0 ? formatRest(restSeconds) : '—',
+          }
+        }),
       }))
       const id = await saveRoutine({
         id: editing ? routineId : undefined,
@@ -233,8 +238,8 @@ export default function RoutineEditor() {
                                 <Field label="Reps">
                                   <input value={b.repsText} onChange={(e) => updateBlock(d.weekday, i, { repsText: e.target.value })} placeholder="8-12" className="input px-2 py-1.5 text-center" />
                                 </Field>
-                                <Field label="Descanso">
-                                  <input value={b.restText} onChange={(e) => updateBlock(d.weekday, i, { restText: e.target.value })} placeholder="60-120 s" className="input px-2 py-1.5 text-center" />
+                                <Field label="Descanso (s)">
+                                  <input type="number" inputMode="numeric" value={b.restSeconds ?? ''} onChange={(e) => updateBlock(d.weekday, i, { restSeconds: e.target.value })} placeholder="60" className="input px-2 py-1.5 text-center" />
                                 </Field>
                                 <Field label="Por lado">
                                   <button

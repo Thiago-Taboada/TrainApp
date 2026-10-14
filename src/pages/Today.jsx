@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useCatalog } from '../hooks/useCatalog'
 import { useLogs } from '../hooks/useLogs'
 import { useAuth } from '../context/AuthContext.jsx'
-import { CheckIcon, RestIcon } from '../components/icons.jsx'
+import { CheckIcon, RestIcon, PlayIcon } from '../components/icons.jsx'
 import { WEEKDAYS } from '../data/seedData'
 import { sessionForDay, metaFor } from '../lib/sessions'
 import { toISODate, weekdayKey, weekDates, formatLong } from '../lib/dates'
@@ -77,7 +77,10 @@ export default function Today() {
                 )}
               </div>
 
-              <Link to={`/sesion/${todayKey}`} className="btn-primary mt-5 w-full">
+              <Link to={`/entrenar/${todayKey}`} className="btn-primary mt-5 w-full py-3 text-base">
+                <PlayIcon /> Empezar entrenamiento
+              </Link>
+              <Link to={`/sesion/${todayKey}`} className="btn-ghost mt-2 w-full">
                 {todayLog ? 'Editar registro de hoy' : 'Registrar entrenamiento'}
               </Link>
               {todayLog?.trained && (

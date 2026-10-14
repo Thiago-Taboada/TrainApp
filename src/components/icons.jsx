@@ -9,6 +9,14 @@ export function CheckIcon({ className = 'h-4 w-4' }) {
   )
 }
 
+export function PlayIcon({ className = 'h-5 w-5' }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M7 5.5v13a1 1 0 0 0 1.52.85l10.5-6.5a1 1 0 0 0 0-1.7L8.52 4.65A1 1 0 0 0 7 5.5z" />
+    </svg>
+  )
+}
+
 export function RestIcon({ className = 'h-4 w-4' }) {
   // Crescent moon — "rest / recovery"
   return (

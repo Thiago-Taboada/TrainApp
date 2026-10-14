@@ -61,3 +61,21 @@ export function sessionForDay(activeRoutines, weekday) {
 export function metaFor(sessionType) {
   return SESSION_TYPE_META[sessionType] ?? SESSION_TYPE_META.rest
 }
+
+// Human-readable rest from a seconds value: 90 -> "1:30", 120 -> "2:00".
+export function formatRest(seconds) {
+  const s = Math.max(0, Math.round(Number(seconds) || 0))
+  if (s === 0) return '—'
+  if (s < 60) return `${s} s`
+  const m = Math.floor(s / 60)
+  const rem = s % 60
+  return rem === 0 ? `${m} min` : `${m}:${String(rem).padStart(2, '0')} min`
+}
+
+// mm:ss clock format for the running timer: 90 -> "1:30".
+export function formatClock(seconds) {
+  const s = Math.max(0, Math.round(Number(seconds) || 0))
+  const m = Math.floor(s / 60)
+  const rem = s % 60
+  return `${m}:${String(rem).padStart(2, '0')}`
+}
