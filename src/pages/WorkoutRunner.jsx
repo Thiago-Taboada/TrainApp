@@ -18,6 +18,8 @@ function buildSteps(day, exercises) {
         name: ex?.name ?? block.exerciseId,
         description: ex?.description ?? '',
         cues: ex?.cues ?? [],
+        tracking: ex?.tracking ?? 'reps',
+        targetSeconds: parseTargetSeconds(block.repsText),
         setNumber: s + 1,
         totalSets: block.sets || 1,
         repsText: block.repsText,
@@ -27,6 +29,12 @@ function buildSteps(day, exercises) {
     }
   }
   return steps
+}
+
+// Low end of a time range like "30-45 s" or "10-20 s" -> 30 / 10 (seconds).
+function parseTargetSeconds(repsText) {
+  const m = String(repsText ?? '').match(/\d+/)
+  return m ? Number(m[0]) : 0
 }
 
 export default function WorkoutRunner() {
@@ -200,18 +208,30 @@ export default function WorkoutRunner() {
             </ul>
           )}
 
-          <div className="my-6 rounded-2xl border border-brand-500/20 bg-ink-900/60 py-6">
-            <p className="label">Objetivo</p>
-            <p className="font-display text-4xl font-extrabold text-brand-300 neon-text">
-              {step.repsText}
-            </p>
-            {step.perSide && <p className="mt-1 text-xs text-slate-400">por lado</p>}
-          </div>
+          {step.tracking === 'time' ? (
+            <ExerciseTimer
+              key={index}
+              target={step.targetSeconds}
+              repsText={step.repsText}
+              perSide={step.perSide}
+              onComplete={completeSet}
+            />
+          ) : (
+            <>
+              <div className="my-6 rounded-2xl border border-brand-500/20 bg-ink-900/60 py-6">
+                <p className="label">Objetivo</p>
+                <p className="font-display text-4xl font-extrabold text-brand-300 neon-text">
+                  {step.repsText}
+                </p>
+                {step.perSide && <p className="mt-1 text-xs text-slate-400">por lado</p>}
+              </div>
 
-          <button onClick={completeSet} className="btn-primary w-full py-3 text-base">
-            <CheckIcon className="h-5 w-5" />
-            Serie completada
-          </button>
+              <button onClick={completeSet} className="btn-primary w-full py-3 text-base">
+                <CheckIcon className="h-5 w-5" />
+                Serie completada
+              </button>
+            </>
+          )}
 
           {step.restSeconds === 0 && !isLast && (
             <p className="mt-3 text-xs text-slate-500">Sin descanso · pasa a la siguiente</p>
@@ -231,6 +251,118 @@ export default function WorkoutRunner() {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+// Timer for time-based exercises: a 3-2-1 countdown, then a stopwatch counting
+// up. Start/Pause and Reset. Shows the target hold time as reference.
+function ExerciseTimer({ target, repsText, perSide, onComplete }) {
+  // phase: 'idle' | 'countdown' | 'running' | 'paused'
+  const [phase, setPhase] = useState('idle')
+  const [countdown, setCountdown] = useState(3)
+  const [elapsed, setElapsed] = useState(0)
+  const tickRef = useRef(null)
+
+  // Countdown 3-2-1 then start the stopwatch.
+  useEffect(() => {
+    if (phase !== 'countdown') return
+    if (countdown <= 0) {
+      setPhase('running')
+      return
+    }
+    const t = setTimeout(() => setCountdown((c) => c - 1), 1000)
+    return () => clearTimeout(t)
+  }, [phase, countdown])
+
+  // Stopwatch tick.
+  useEffect(() => {
+    if (phase !== 'running') return
+    tickRef.current = setInterval(() => setElapsed((e) => e + 1), 1000)
+    return () => clearInterval(tickRef.current)
+  }, [phase])
+
+  // Alert once when the hold reaches its target time.
+  useEffect(() => {
+    if (phase === 'running' && target > 0 && elapsed === target) {
+      beep()
+      vibrate()
+    }
+  }, [phase, elapsed, target])
+
+  function start() {
+    setCountdown(3)
+    setPhase('countdown')
+  }
+  function pause() {
+    setPhase('paused')
+  }
+  function resume() {
+    setPhase('running')
+  }
+  function reset() {
+    clearInterval(tickRef.current)
+    setElapsed(0)
+    setCountdown(3)
+    setPhase('idle')
+  }
+
+  const reachedTarget = target > 0 && elapsed >= target
+
+  return (
+    <div className="my-6">
+      <div
+        className={`relative mx-auto flex h-44 w-44 items-center justify-center rounded-full border-4 ${
+          reachedTarget ? 'border-brand-400 shadow-neon' : 'border-ink-600'
+        }`}
+      >
+        {phase === 'countdown' ? (
+          <span className="font-display text-6xl font-extrabold text-neon-amber neon-text-pink">
+            {countdown === 0 ? '¡Ya!' : countdown}
+          </span>
+        ) : (
+          <div className="text-center">
+            <span className="font-display text-5xl font-extrabold text-brand-300 neon-text">
+              {formatClock(elapsed)}
+            </span>
+            {target > 0 && (
+              <p className="mt-1 font-mono text-xs text-slate-500">meta {formatClock(target)}</p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {perSide && <p className="mt-2 text-center text-xs text-slate-400">por lado</p>}
+      {phase === 'idle' && target > 0 && (
+        <p className="mt-2 text-center text-sm text-slate-400">Objetivo: {repsText}</p>
+      )}
+
+      {/* Controls */}
+      <div className="mt-5 flex gap-2">
+        {phase === 'idle' && (
+          <button onClick={start} className="btn-primary flex-1 py-3">Iniciar</button>
+        )}
+        {phase === 'countdown' && (
+          <button onClick={reset} className="btn-ghost flex-1 py-3">Cancelar</button>
+        )}
+        {phase === 'running' && (
+          <>
+            <button onClick={pause} className="btn-ghost flex-1 py-3">Pausar</button>
+            <button onClick={reset} className="btn-ghost flex-1 py-3">Restablecer</button>
+          </>
+        )}
+        {phase === 'paused' && (
+          <>
+            <button onClick={resume} className="btn-primary flex-1 py-3">Reanudar</button>
+            <button onClick={reset} className="btn-ghost flex-1 py-3">Restablecer</button>
+          </>
+        )}
+      </div>
+
+      <button onClick={onComplete} className="btn-primary mt-3 w-full py-3 text-base">
+        <CheckIcon className="h-5 w-5" />
+        Serie completada
+      </button>
     </div>
   )
 }
