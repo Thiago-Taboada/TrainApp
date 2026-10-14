@@ -59,9 +59,10 @@ src/
 ## Deploy
 
 ```bash
-npm run build
-firebase deploy --only firestore:rules,hosting
+firebase deploy
 ```
+
+El build se ejecuta automáticamente antes de subir (hook `predeploy` en `firebase.json`).
 
 ## Notas
 
