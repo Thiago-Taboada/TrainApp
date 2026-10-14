@@ -54,7 +54,7 @@ const EXERCISES_RAW = [
     muscleGroups: ['pull', 'arms'],
     equipment: ['Barra de dominadas'],
     description:
-      'Colgado de la barra con agarre prono (palmas al frente), tira hasta pasar la barbilla por encima de la barra y baja con control hasta extender los brazos.',
+      'Colgado de la barra con agarre prono (palmas al frente) a la anchura de los hombros, tira del cuerpo hasta pasar la barbilla sobre la barra y baja con control hasta extender los brazos.',
     cues: ['Evita balancearte', 'Baja de forma controlada', 'Escápulas abajo y atrás'],
   },
   {
@@ -64,7 +64,7 @@ const EXERCISES_RAW = [
     muscleGroups: ['pull', 'arms'],
     equipment: ['Barra de dominadas'],
     description:
-      'Igual que la dominada prona pero con agarre supino (palmas hacia ti). Involucra más el bíceps.',
+      'Colgado de la barra con agarre supino (palmas hacia ti) a la anchura de los hombros, tira del cuerpo hasta pasar la barbilla sobre la barra y baja con control. El agarre supino implica más el bíceps.',
     cues: ['Codos pegados al cuerpo', 'Control en la bajada'],
   },
   {
@@ -74,7 +74,7 @@ const EXERCISES_RAW = [
     muscleGroups: ['push', 'arms', 'core'],
     equipment: ['Peso corporal', 'Superficie elevada'],
     description:
-      'Flexiones con los pies apoyados sobre una superficie elevada para cargar más la parte alta del pecho y los hombros.',
+      'Flexión de brazos con las manos a la altura del pecho, algo más abiertas que los hombros, y los pies apoyados sobre una superficie elevada. Al tener los pies en alto se carga más la parte alta del pecho y los hombros.',
     cues: ['Cuerpo recto como una tabla', 'Codos a ~45°', 'Baja hasta casi tocar el suelo'],
   },
   {
@@ -84,7 +84,7 @@ const EXERCISES_RAW = [
     muscleGroups: ['push', 'shoulders'],
     equipment: ['Peso corporal'],
     description:
-      'En posición de "V" invertida (cadera arriba), flexiona los codos llevando la cabeza hacia el suelo. Enfatiza los hombros.',
+      'Flexión en posición de "V" invertida, con la cadera alta y las manos a la anchura de los hombros. Baja flexionando los codos hasta acercar la cabeza al suelo y empuja hacia arriba. Enfatiza los hombros.',
     cues: ['Cadera alta', 'Mirada hacia los pies', 'Codos hacia adelante'],
   },
   {
@@ -94,7 +94,7 @@ const EXERCISES_RAW = [
     muscleGroups: ['push', 'arms'],
     equipment: ['Peso corporal'],
     description:
-      'Flexiones con las manos juntas bajo el pecho para enfatizar el tríceps.',
+      'Flexión de brazos con las manos juntas bajo el pecho, manteniendo los codos pegados al cuerpo al bajar. El agarre estrecho enfatiza el tríceps.',
     cues: ['Codos pegados al cuerpo', 'Cuerpo firme'],
   },
   {
@@ -104,7 +104,7 @@ const EXERCISES_RAW = [
     muscleGroups: ['legs', 'glutes'],
     equipment: ['Mancuernas', 'Superficie elevada'],
     description:
-      'Con un pie atrás apoyado en una superficie elevada, baja flexionando la pierna delantera hasta que el muslo quede paralelo al suelo.',
+      'De pie con el empeine del pie trasero apoyado en una superficie elevada y una mancuerna en cada mano, baja flexionando la pierna delantera hasta que el muslo quede paralelo al suelo y sube empujando con el talón.',
     cues: ['Torso erguido', 'Rodilla alineada con el pie', 'Peso en el talón delantero'],
   },
   {
@@ -114,7 +114,7 @@ const EXERCISES_RAW = [
     muscleGroups: ['pull', 'arms'],
     equipment: ['Mancuerna', 'Banco'],
     description:
-      'Con una rodilla y mano apoyadas, tira de la mancuerna hacia la cadera llevando el codo atrás, apretando la espalda.',
+      'Con una rodilla y la misma mano apoyadas en un banco y una mancuerna en la otra mano, tira de ella hacia la cadera llevando el codo atrás y apretando la espalda. Baja con control.',
     cues: ['Espalda neutra', 'Tira con el codo, no con la mano', 'Aprieta la escápula'],
   },
   {
@@ -124,7 +124,7 @@ const EXERCISES_RAW = [
     muscleGroups: ['hamstrings', 'glutes', 'pull'],
     equipment: ['Mancuernas'],
     description:
-      'Con piernas casi rectas, baja las mancuernas pegadas a las piernas llevando la cadera atrás, sintiendo estiramiento en los isquiotibiales.',
+      'De pie con una mancuerna en cada mano y las piernas casi rectas, baja las mancuernas pegadas a las piernas llevando la cadera hacia atrás hasta notar tensión en los isquiotibiales, y vuelve a subir.',
     cues: ['Espalda recta', 'Cadera hacia atrás', 'Rodillas ligeramente flexionadas'],
   },
   {
@@ -134,7 +134,7 @@ const EXERCISES_RAW = [
     muscleGroups: ['hamstrings', 'glutes', 'core'],
     equipment: ['Mancuernas'],
     description:
-      'Sobre una pierna, inclina el torso al frente mientras la pierna libre se eleva atrás, manteniendo la cadera nivelada.',
+      'De pie sobre una pierna con una mancuerna en la mano, inclina el torso al frente mientras la pierna libre se eleva hacia atrás, manteniendo la cadera nivelada, y vuelve a la posición inicial.',
     cues: ['Cadera nivelada', 'Movimiento lento', 'Core activo para el equilibrio'],
   },
   {
@@ -143,7 +143,7 @@ const EXERCISES_RAW = [
     category: 'strength',
     muscleGroups: ['arms'],
     equipment: ['Mancuernas'],
-    description: 'Flexiona los codos subiendo las mancuernas hacia los hombros sin balancear el torso.',
+    description: 'De pie con una mancuerna en cada mano y las palmas al frente, flexiona los codos subiendo las mancuernas hacia los hombros y baja con control, sin balancear el torso.',
     cues: ['Codos fijos', 'Sin impulso', 'Baja controlado'],
   },
   {
@@ -153,7 +153,7 @@ const EXERCISES_RAW = [
     muscleGroups: ['arms'],
     equipment: ['Mancuerna'],
     description:
-      'Con la mancuerna sobre la cabeza, extiende los codos hacia arriba manteniéndolos apuntando al frente.',
+      'Sujeta una mancuerna con ambas manos por encima de la cabeza. Baja el peso por detrás de la nuca flexionando los codos y extiéndelos para subir, manteniendo los codos apuntando al frente.',
     cues: ['Codos quietos y arriba', 'Rango completo'],
   },
   {
@@ -163,7 +163,7 @@ const EXERCISES_RAW = [
     muscleGroups: ['arms'],
     equipment: ['Mancuernas'],
     description:
-      'Curl con agarre neutro (palmas enfrentadas), trabajando bíceps y antebrazo.',
+      'De pie con una mancuerna en cada mano y las palmas enfrentadas (agarre neutro), flexiona los codos subiendo las mancuernas hacia los hombros y baja con control. Trabaja bíceps y antebrazo.',
     cues: ['Agarre neutro', 'Codos fijos', 'Sin balanceo'],
   },
   {
@@ -173,7 +173,7 @@ const EXERCISES_RAW = [
     muscleGroups: ['shoulders'],
     equipment: ['Mancuernas'],
     description:
-      'Eleva las mancuernas a los lados hasta la altura de los hombros, con una ligera flexión de codo.',
+      'De pie con una mancuerna en cada mano a los costados, eleva los brazos hacia los lados hasta la altura de los hombros con una ligera flexión de codo, y baja con control.',
     cues: ['Sube con el codo', 'Sin impulso', 'Hombros abajo'],
   },
   {
@@ -183,7 +183,7 @@ const EXERCISES_RAW = [
     muscleGroups: ['shoulders', 'pull'],
     equipment: ['Mancuernas'],
     description:
-      'Inclinado al frente, abre los brazos a los lados apretando la parte posterior de los hombros y la espalda alta.',
+      'Con el torso inclinado al frente y una mancuerna en cada mano colgando, abre los brazos hacia los lados hasta la altura de los hombros apretando la parte posterior de los hombros y la espalda alta.',
     cues: ['Torso inclinado estable', 'Aprieta escápulas', 'Sin impulso'],
   },
   {
@@ -193,7 +193,7 @@ const EXERCISES_RAW = [
     muscleGroups: ['legs', 'glutes'],
     equipment: ['Mancuernas'],
     description:
-      'Da un paso atrás y baja hasta que ambas rodillas formen ~90°, luego vuelve. Alterna piernas.',
+      'De pie con una mancuerna en cada mano, da un paso atrás y baja hasta que ambas rodillas formen unos 90°, luego empuja para volver. Alterna piernas.',
     cues: ['Torso erguido', 'Rodilla delantera estable', 'Paso controlado'],
   },
   {
@@ -203,7 +203,7 @@ const EXERCISES_RAW = [
     muscleGroups: ['glutes', 'core'],
     equipment: ['Peso corporal'],
     description:
-      'Tumbado boca arriba, extiende una pierna y empuja con el talón apoyado para elevar la cadera apretando el glúteo.',
+      'Tumbado boca arriba con una rodilla flexionada y la otra pierna estirada, empuja con el talón apoyado para elevar la cadera apretando el glúteo, y baja con control.',
     cues: ['Aprieta el glúteo arriba', 'Cadera nivelada', 'Sin arquear la zona lumbar'],
   },
   {
@@ -213,7 +213,7 @@ const EXERCISES_RAW = [
     muscleGroups: ['core'],
     equipment: ['Peso corporal'],
     description:
-      'Tumbado, lleva las rodillas hacia el pecho elevando la cadera del suelo con control.',
+      'Tumbado boca arriba con las rodillas flexionadas, lleva las rodillas hacia el pecho elevando la cadera del suelo con el abdomen, y baja despacio.',
     cues: ['Movimiento desde el abdomen', 'Sin impulso', 'Baja lento'],
   },
   {
@@ -223,7 +223,7 @@ const EXERCISES_RAW = [
     muscleGroups: ['core'],
     equipment: ['Peso corporal'],
     description:
-      'Apoyado en antebrazos y puntas de pies, mantén el cuerpo recto y firme activando el abdomen.',
+      'Apoyado en los antebrazos y las puntas de los pies, mantén el cuerpo recto y firme de la cabeza a los talones, activando abdomen y glúteos durante el tiempo indicado.',
     cues: ['Cuerpo recto', 'Glúteos y abdomen apretados', 'No hundir la cadera'],
   },
   {
@@ -233,7 +233,7 @@ const EXERCISES_RAW = [
     muscleGroups: ['core'],
     equipment: ['Peso corporal'],
     description:
-      'Tumbado boca arriba, eleva las piernas rectas hasta la vertical y baja sin tocar el suelo.',
+      'Tumbado boca arriba con las piernas estiradas, elévalas juntas hasta la vertical y bájalas despacio sin que lleguen a tocar el suelo.',
     cues: ['Zona lumbar pegada al suelo', 'Piernas controladas', 'Sin impulso'],
   },
 
@@ -244,7 +244,7 @@ const EXERCISES_RAW = [
     category: 'mobility',
     muscleGroups: ['hips'],
     equipment: ['Peso corporal'],
-    description: 'Círculos amplios y controlados con la cadera para movilizar la articulación.',
+    description: 'De pie con las manos en la cintura, describe círculos amplios y controlados con la cadera, moviéndola en todo su rango sin forzar. Cambia de sentido a la mitad.',
     cues: ['Amplios y controlados', 'Sin forzar'],
   },
   {
@@ -253,7 +253,7 @@ const EXERCISES_RAW = [
     category: 'mobility',
     muscleGroups: ['hips', 'hamstrings'],
     equipment: ['Peso corporal', 'Apoyo'],
-    description: 'Balancea la pierna adelante y atrás aumentando la altura de forma gradual.',
+    description: 'De pie, apoyado con una mano, balancea una pierna estirada hacia adelante y hacia atrás de forma controlada, aumentando la altura de forma gradual.',
     cues: ['Tronco estable', 'Aumenta la altura gradualmente'],
   },
   {
@@ -262,7 +262,7 @@ const EXERCISES_RAW = [
     category: 'mobility',
     muscleGroups: ['hips', 'adductors'],
     equipment: ['Peso corporal', 'Apoyo'],
-    description: 'Balancea la pierna de lado a lado frente al cuerpo sin girar el tronco.',
+    description: 'De pie, apoyado de frente a una pared, balancea una pierna estirada de lado a lado por delante del cuerpo sin girar el tronco.',
     cues: ['Evita girar el tronco', 'Apóyate si hace falta'],
   },
   {
@@ -271,7 +271,7 @@ const EXERCISES_RAW = [
     category: 'mobility',
     muscleGroups: ['hips', 'legs'],
     equipment: ['Peso corporal'],
-    description: 'Zancada avanzando con apertura de cadera en un rango cómodo y movimiento suave.',
+    description: 'Da un paso largo al frente a una zancada profunda y abre la cadera llevando el codo del mismo lado hacia el suelo; vuelve y alterna. Movimiento suave en un rango cómodo.',
     cues: ['Rango cómodo', 'Movimiento suave'],
   },
 
@@ -282,7 +282,7 @@ const EXERCISES_RAW = [
     category: 'staticStretch',
     muscleGroups: ['adductors', 'hips'],
     equipment: ['Peso corporal'],
-    description: 'Sentado con las plantas de los pies juntas, deja caer las rodillas hacia el suelo.',
+    description: 'Sentado con las plantas de los pies juntas y las rodillas abiertas, deja caer las rodillas hacia el suelo y mantén la posición notando el estiramiento en la ingle.',
     cues: ['Espalda recta', 'Tensión moderada, nunca dolor'],
     focus: 'Aductores e ingle',
   },
@@ -292,7 +292,7 @@ const EXERCISES_RAW = [
     category: 'staticStretch',
     muscleGroups: ['adductors', 'hips'],
     equipment: ['Peso corporal'],
-    description: 'En cuadrupedia, abre las rodillas a los lados y deja caer la cadera atrás.',
+    description: 'En cuadrupedia con las rodillas bien abiertas a los lados, lleva la cadera hacia atrás y mantén la posición notando el estiramiento en la cara interna de los muslos.',
     cues: ['Progresa poco a poco', 'No rebotes'],
     focus: 'Aductores y apertura lateral',
   },
@@ -302,7 +302,7 @@ const EXERCISES_RAW = [
     category: 'staticStretch',
     muscleGroups: ['hips'],
     equipment: ['Peso corporal'],
-    description: 'En media rodilla, empuja la cadera al frente manteniendo el torso erguido.',
+    description: 'Apoyado en una rodilla con la otra pierna flexionada al frente, empuja la cadera hacia adelante con el torso erguido y mantén la posición notando el estiramiento en la parte frontal de la cadera.',
     cues: ['Glúteo activo', 'Torso vertical'],
     focus: 'Parte frontal de la cadera',
   },
@@ -312,7 +312,7 @@ const EXERCISES_RAW = [
     category: 'staticStretch',
     muscleGroups: ['hamstrings'],
     equipment: ['Peso corporal'],
-    description: 'Con el talón apoyado y la pierna recta, inclina el torso desde la cadera.',
+    description: 'Con una pierna estirada al frente y el talón apoyado en el suelo, inclina el torso desde la cadera hacia esa pierna y mantén la posición notando el estiramiento detrás del muslo.',
     cues: ['Inclínate desde la cadera', 'Espalda recta'],
     focus: 'Parte posterior del muslo',
   },
@@ -322,7 +322,7 @@ const EXERCISES_RAW = [
     category: 'staticStretch',
     muscleGroups: ['adductors', 'hamstrings'],
     equipment: ['Peso corporal'],
-    description: 'Sentado con las piernas abiertas en V, inclínate al frente desde la cadera.',
+    description: 'Sentado en el suelo con las piernas abiertas en V, inclina el torso al frente desde la cadera y mantén la posición notando el estiramiento en la cara interna de los muslos.',
     cues: ['Inclínate desde la cadera', 'Sin redondear la espalda'],
     focus: 'Aductores',
   },
@@ -332,7 +332,7 @@ const EXERCISES_RAW = [
     category: 'staticStretch',
     muscleGroups: ['hips'],
     equipment: ['Peso corporal'],
-    description: 'Sentado con ambas piernas a 90°, rota de un lado al otro trabajando rotación interna y externa.',
+    description: 'Sentado en el suelo con una pierna flexionada al frente y la otra al lado, ambas en ángulo de 90°, rota la cadera de un lado al otro para trabajar la rotación interna y externa.',
     cues: ['Movimiento controlado', 'Tensión moderada'],
     focus: 'Rotación interna y externa',
   },
@@ -344,7 +344,7 @@ const EXERCISES_RAW = [
     category: 'activeFlex',
     muscleGroups: ['hips', 'legs'],
     equipment: ['Peso corporal'],
-    description: 'Eleva la pierna recta al frente lo más alto posible sin impulso y baja despacio.',
+    description: 'De pie, eleva una pierna recta hacia el frente lo más alto posible sin impulso y bájala despacio con control. Apóyate en una pared si lo necesitas.',
     cues: ['Sin impulso', 'Baja despacio'],
   },
   {
@@ -353,7 +353,7 @@ const EXERCISES_RAW = [
     category: 'activeFlex',
     muscleGroups: ['hips', 'adductors'],
     equipment: ['Peso corporal'],
-    description: 'Eleva la pierna hacia el lado manteniendo la pelvis estable, sin inclinarte.',
+    description: 'De pie, eleva una pierna recta hacia el lado lo más alto posible manteniendo la pelvis estable y sin inclinar el torso. Baja con control. Apóyate en una pared si lo necesitas.',
     cues: ['Pelvis estable', 'No te inclines para subir más'],
   },
   {
@@ -362,7 +362,7 @@ const EXERCISES_RAW = [
     category: 'activeFlex',
     muscleGroups: ['hips', 'core', 'legs'],
     equipment: ['Peso corporal'],
-    description: 'Eleva la rodilla a la posición de recámara de la patada y mantén el equilibrio.',
+    description: 'De pie sobre una pierna, eleva la otra rodilla a la altura de la cintura (posición de recámara, previa a la patada) y mantén esa posición en equilibrio durante el tiempo indicado.',
     cues: ['Mantén equilibrio y respiración', 'Rodilla alta'],
   },
 ]

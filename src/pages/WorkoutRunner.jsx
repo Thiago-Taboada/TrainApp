@@ -16,6 +16,8 @@ function buildSteps(day, exercises) {
       steps.push({
         exerciseId: block.exerciseId,
         name: ex?.name ?? block.exerciseId,
+        description: ex?.description ?? '',
+        cues: ex?.cues ?? [],
         setNumber: s + 1,
         totalSets: block.sets || 1,
         repsText: block.repsText,
@@ -177,6 +179,22 @@ export default function WorkoutRunner() {
           <p className="mt-1 text-sm text-slate-400">
             Serie {step.setNumber} de {step.totalSets}
           </p>
+
+          {step.description && (
+            <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-slate-400">
+              {step.description}
+            </p>
+          )}
+
+          {step.cues.length > 0 && (
+            <ul className="mx-auto mt-3 flex max-w-md flex-wrap justify-center gap-1.5">
+              {step.cues.map((cue, i) => (
+                <li key={i} className="chip border-brand-400/30 bg-brand-500/10 text-brand-200">
+                  {cue}
+                </li>
+              ))}
+            </ul>
+          )}
 
           <div className="my-6 rounded-2xl border border-brand-500/20 bg-ink-900/60 py-6">
             <p className="label">Objetivo</p>
