@@ -1,16 +1,15 @@
 import { NavLink, useLocation } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext.jsx'
+import AccountMenu from './AccountMenu.jsx'
 
 const NAV = [
   { to: '/', label: 'Hoy', icon: HomeIcon, end: true },
   { to: '/biblioteca', label: 'Ejercicios', icon: BookIcon },
   { to: '/rutinas', label: 'Rutinas', icon: ListIcon },
-  { to: '/cronograma', label: 'Semana', icon: CalendarIcon },
+  { to: '/cronograma', label: 'Cronograma', icon: CalendarIcon },
   { to: '/analisis', label: 'Análisis', icon: ChartIcon },
 ]
 
 export default function Layout({ children }) {
-  const { user, signOut } = useAuth()
   const location = useLocation()
   const current = NAV.find((n) => (n.end ? location.pathname === n.to : location.pathname.startsWith(n.to) && n.to !== '/')) ?? NAV[0]
 
@@ -37,7 +36,7 @@ export default function Layout({ children }) {
                   className={({ isActive }) =>
                     `rounded-lg px-3 py-2 text-sm font-semibold uppercase tracking-wide transition ${
                       isActive
-                        ? 'bg-brand-500/15 text-brand-300 neon-text'
+                        ? 'text-brand-300 neon-text underline decoration-2 decoration-brand-400 underline-offset-4'
                         : 'text-slate-400 hover:text-brand-200'
                     }`
                   }
@@ -46,18 +45,7 @@ export default function Layout({ children }) {
                 </NavLink>
               ))}
             </nav>
-            <div className="flex items-center gap-2">
-              {user?.photoURL ? (
-                <img src={user.photoURL} alt="" className="h-8 w-8 rounded-full border border-brand-400/40 ring-1 ring-brand-500/20" referrerPolicy="no-referrer" />
-              ) : (
-                <div className="flex h-8 w-8 items-center justify-center rounded-full border border-brand-400/40 bg-ink-800 text-sm font-semibold text-brand-300">
-                  {(user?.displayName ?? '?').charAt(0)}
-                </div>
-              )}
-              <button onClick={signOut} title="Cerrar sesión" className="rounded-lg p-2 text-slate-500 transition hover:bg-ink-800 hover:text-neon-pink">
-                <LogoutIcon />
-              </button>
-            </div>
+            <AccountMenu />
           </div>
         </div>
       </header>
@@ -124,13 +112,6 @@ function ChartIcon() {
   return (
     <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
       <path strokeLinecap="round" strokeLinejoin="round" d="M4 19V5m0 14h16M8 15v-4m4 4V8m4 7v-6" />
-    </svg>
-  )
-}
-function LogoutIcon() {
-  return (
-    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12H3m0 0 4-4m-4 4 4 4M13 4h6a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-6" />
     </svg>
   )
 }

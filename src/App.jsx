@@ -14,6 +14,7 @@ import Analysis from './pages/Analysis.jsx'
 import Routines from './pages/Routines.jsx'
 import RoutineEditor from './pages/RoutineEditor.jsx'
 import ExerciseEditor from './pages/ExerciseEditor.jsx'
+import Account from './pages/Account.jsx'
 
 export default function App() {
   const { user, loading } = useAuth()
@@ -44,6 +45,7 @@ export default function App() {
           <Route path="/cronograma" element={<Schedule />} />
           <Route path="/sesion/:weekday" element={<SessionLog />} />
           <Route path="/analisis" element={<Analysis />} />
+          <Route path="/cuenta" element={<Account />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         </Layout>
