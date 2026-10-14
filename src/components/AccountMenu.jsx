@@ -8,7 +8,7 @@ import { exportUserData } from '../lib/exportData'
 export default function AccountMenu() {
   const { user, signOut } = useAuth()
   const { exercises, routines, activeRoutineIds } = useCatalog()
-  const { logs } = useLogs()
+  const { logs, weights } = useLogs()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
@@ -38,6 +38,7 @@ export default function AccountMenu() {
     exportUserData({
       user,
       logs,
+      weights,
       customExercises: exercises.filter((e) => e.isCustom),
       customRoutines: routines.filter((r) => r.isCustom),
       activeRoutineIds,

@@ -6,21 +6,19 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  ComposedChart,
   Line,
   LineChart,
   ResponsiveContainer,
-  Scatter,
-  ScatterChart,
   Tooltip,
   XAxis,
   YAxis,
-  ZAxis,
 } from 'recharts'
 import { useCatalog } from '../hooks/useCatalog'
 import { useLogs } from '../hooks/useLogs'
 import { WEEKDAYS } from '../data/seedData'
 import { sessionForDay } from '../lib/sessions'
-import { addDays, startOfWeek, toISODate, weekId } from '../lib/dates'
+import { addDays, fromISODate, startOfWeek, toISODate, weekId } from '../lib/dates'
 import Spinner from '../components/Spinner.jsx'
 import { ChartIcon } from '../components/icons.jsx'
 
@@ -43,7 +41,7 @@ const TOOLTIP = {
 
 export default function Analysis() {
   const { exercises, activeRoutines, loading } = useCatalog()
-  const { logs, loading: logsLoading } = useLogs()
+  const { logs, weights, loading: logsLoading } = useLogs()
 
   const plannedPerWeek = WEEKDAYS.filter(
     (w) => sessionForDay(activeRoutines, w.key).sessionType !== 'rest',
@@ -63,7 +61,7 @@ export default function Analysis() {
 
   if (loading || logsLoading) return <Spinner />
 
-  if (trainedLogs.length === 0) {
+  if (trainedLogs.length === 0 && weights.length === 0) {
     return (
       <div className="space-y-5">
         <Header />
@@ -81,6 +79,7 @@ export default function Analysis() {
   return (
     <div className="space-y-6">
       <Header />
+      <BodyWeight weights={weights} logs={trainedLogs} />
       <ConstancyHeatmap logs={trainedLogs} />
       <WeeklyAdherence logs={trainedLogs} plannedPerWeek={plannedPerWeek} />
       <ExerciseEvolution
@@ -112,6 +111,81 @@ function Section({ title, hint, children }) {
       {hint && <p className="mb-4 mt-0.5 text-xs text-slate-400">{hint}</p>}
       {children}
     </section>
+  )
+}
+
+// 0. Body weight over time + weekly sessions (to relate weight to training load)
+function BodyWeight({ weights, logs }) {
+  const sorted = useMemo(
+    () => [...weights].sort((a, b) => (a.weekId > b.weekId ? 1 : -1)),
+    [weights],
+  )
+
+  // Sessions per weekId, to overlay as bars.
+  const sessionsByWeek = useMemo(() => {
+    const m = {}
+    for (const l of logs) {
+      const id = weekId(fromISODate(l.date))
+      m[id] = (m[id] ?? 0) + 1
+    }
+    return m
+  }, [logs])
+
+  const data = sorted.map((w) => ({
+    label: fromISODate(w.date).toLocaleDateString('es', { day: 'numeric', month: 'short' }),
+    peso: w.weightKg,
+    sesiones: sessionsByWeek[w.weekId] ?? 0,
+  }))
+
+  // Summary stats
+  const latest = sorted.at(-1)?.weightKg ?? null
+  const first = sorted[0]?.weightKg ?? null
+  const delta = latest != null && first != null ? +(latest - first).toFixed(1) : null
+
+  if (weights.length === 0) {
+    return (
+      <Section title="Peso corporal" hint="Registra tu peso cada semana desde el inicio.">
+        <p className="py-6 text-center text-sm text-slate-400">
+          Aún no registras tu peso. El recordatorio aparece en Inicio cada semana.
+        </p>
+      </Section>
+    )
+  }
+
+  return (
+    <Section title="Peso corporal" hint="Evolución semanal. Las barras muestran las sesiones de esa semana.">
+      <div className="mb-4 flex flex-wrap gap-4">
+        <Metric label="Actual" value={latest != null ? `${latest} kg` : '—'} tone="brand" />
+        {delta != null && (
+          <Metric
+            label="Cambio total"
+            value={`${delta > 0 ? '+' : ''}${delta} kg`}
+            tone={delta > 0 ? 'pink' : 'brand'}
+          />
+        )}
+      </div>
+      <ResponsiveContainer width="100%" height={220}>
+        <ComposedChart data={data} margin={{ top: 10, right: 5, left: -20, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1c2743" />
+          <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#64748b' }} stroke="#2a3761" />
+          <YAxis yAxisId="w" tick={{ fontSize: 11, fill: '#64748b' }} stroke="#2a3761" domain={['dataMin - 1', 'dataMax + 1']} />
+          <YAxis yAxisId="s" orientation="right" allowDecimals={false} tick={{ fontSize: 11, fill: '#334155' }} stroke="#1c2743" />
+          <Tooltip {...TOOLTIP} cursor={{ fill: 'rgba(0,240,255,0.06)' }} />
+          <Bar yAxisId="s" dataKey="sesiones" name="Sesiones" fill="#1c2743" radius={[4, 4, 0, 0]} />
+          <Line yAxisId="w" type="monotone" dataKey="peso" name="Peso (kg)" stroke="#00f0ff" strokeWidth={2.5} dot={{ r: 3, fill: '#00f0ff' }} />
+        </ComposedChart>
+      </ResponsiveContainer>
+    </Section>
+  )
+}
+
+function Metric({ label, value, tone }) {
+  const color = tone === 'pink' ? 'text-neon-pink neon-text-pink' : 'text-brand-300 neon-text'
+  return (
+    <div>
+      <p className="label">{label}</p>
+      <p className={`font-display text-2xl font-extrabold ${color}`}>{value}</p>
+    </div>
   )
 }
 

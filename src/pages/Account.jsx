@@ -10,7 +10,7 @@ import Spinner from '../components/Spinner.jsx'
 export default function Account() {
   const { user, signOut, providerLabel, isPasswordUser, updateDisplayName, deleteAccount, error, clearError } = useAuth()
   const { exercises, routines, activeRoutines, activeRoutineIds, loading } = useCatalog()
-  const { logs, loading: logsLoading } = useLogs()
+  const { logs, weights, loading: logsLoading } = useLogs()
   const navigate = useNavigate()
 
   const stats = useMemo(() => computeStats(logs), [logs])
@@ -29,6 +29,7 @@ export default function Account() {
     exportUserData({
       user,
       logs,
+      weights,
       customExercises: exercises.filter((e) => e.isCustom),
       customRoutines: routines.filter((r) => r.isCustom),
       activeRoutineIds,

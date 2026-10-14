@@ -1,6 +1,6 @@
 // Builds a JSON backup of the user's data and triggers a download in the
 // browser. Everything runs client-side; no server involved.
-export function exportUserData({ user, logs, customExercises, customRoutines, activeRoutineIds }) {
+export function exportUserData({ user, logs, weights, customExercises, customRoutines, activeRoutineIds }) {
   const payload = {
     app: 'TrainApp',
     exportedAt: new Date().toISOString(),
@@ -13,6 +13,7 @@ export function exportUserData({ user, logs, customExercises, customRoutines, ac
     customExercises: customExercises ?? [],
     customRoutines: customRoutines ?? [],
     logs: logs ?? [],
+    weights: weights ?? [],
   }
 
   const blob = new Blob([JSON.stringify(payload, null, 2)], {

@@ -27,11 +27,13 @@ const LogsContext = createContext(null)
 export function LogsProvider({ children }) {
   const { user } = useAuth()
   const [logs, setLogs] = useState([])
+  const [weights, setWeights] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!user) {
       setLogs([])
+      setWeights([])
       setLoading(false)
       return
     }
@@ -56,9 +58,17 @@ export function LogsProvider({ children }) {
       },
     )
 
+    // Body-weight log, one entry per week (doc id == weekId).
+    const unsubWeights = onSnapshot(
+      query(collection(db, 'users', user.uid, 'weights'), orderBy('weekId', 'asc')),
+      (snap) => setWeights(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+      (err) => console.error('useWeights', err),
+    )
+
     return () => {
       clearTimeout(releaseTimer)
       unsub()
+      unsubWeights()
     }
   }, [user])
 
@@ -84,7 +94,20 @@ export function LogsProvider({ children }) {
     [user],
   )
 
-  const value = { logs, loading, saveLog, deleteLog }
+  // Save the body weight for a given week (one entry per weekId).
+  const saveWeight = useCallback(
+    async ({ weekId, date, weightKg }) => {
+      if (!user) throw new Error('No autenticado')
+      await setDoc(
+        doc(db, 'users', user.uid, 'weights', weekId),
+        { weekId, date, weightKg: Number(weightKg), updatedAt: Date.now() },
+        { merge: true },
+      )
+    },
+    [user],
+  )
+
+  const value = { logs, weights, loading, saveLog, deleteLog, saveWeight }
   return createElement(LogsContext.Provider, { value }, children)
 }
 

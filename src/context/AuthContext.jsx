@@ -238,6 +238,7 @@ export function AuthProvider({ children }) {
         deleteSubcollection(current.uid, 'logs'),
         deleteSubcollection(current.uid, 'routines'),
         deleteSubcollection(current.uid, 'exercises'),
+        deleteSubcollection(current.uid, 'weights'),
       ])
       await deleteDoc(doc(db, 'users', current.uid))
       await deleteUser(current)

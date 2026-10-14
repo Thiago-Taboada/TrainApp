@@ -7,6 +7,7 @@ import { WEEKDAYS } from '../data/seedData'
 import { sessionForDay, metaFor } from '../lib/sessions'
 import { toISODate, weekdayKey, weekDates, formatLong } from '../lib/dates'
 import Spinner from '../components/Spinner.jsx'
+import WeightReminder from '../components/WeightReminder.jsx'
 
 export default function Today() {
   const { user } = useAuth()
@@ -38,6 +39,8 @@ export default function Today() {
         <p className="text-sm font-medium text-slate-400">{formatLong(today)}</p>
         <h1 className="neon-title text-2xl text-brand-300">Hola, {firstName}</h1>
       </div>
+
+      <WeightReminder />
 
       {!hasActive && (
         <div className="card border-neon-amber/40 bg-neon-amber/10 p-4 text-sm text-neon-amber">
