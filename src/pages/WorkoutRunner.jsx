@@ -49,23 +49,26 @@ export default function WorkoutRunner() {
   const [done, setDone] = useState(false)
   const intervalRef = useRef(null)
 
-  // Rest countdown.
+  // Rest countdown: the interval only decrements. When it reaches 0 the
+  // effect below fires the alert + advances. (Keeping side effects out of the
+  // state updater avoids double-firing under StrictMode.)
   useEffect(() => {
     if (!resting) return
     intervalRef.current = setInterval(() => {
-      setRemaining((r) => {
-        if (r <= 1) {
-          clearInterval(intervalRef.current)
-          setResting(false)
-          beep()
-          vibrate()
-          return 0
-        }
-        return r - 1
-      })
+      setRemaining((r) => (r <= 1 ? 0 : r - 1))
     }, 1000)
     return () => clearInterval(intervalRef.current)
   }, [resting])
+
+  // When the rest timer hits 0, alert and move to the next step.
+  useEffect(() => {
+    if (!resting || remaining > 0) return
+    clearInterval(intervalRef.current)
+    beep()
+    vibrate()
+    goNext()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resting, remaining])
 
   if (loading) return <Spinner />
 
