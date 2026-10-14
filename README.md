@@ -1,13 +1,16 @@
 # Train App
 
-Aplicación web para seguir una rutina de fuerza y flexibilidad: catálogo de ejercicios, registro diario de entrenamiento y análisis de progreso. Pensada para entrenar en casa con enfoque en movilidad para patadas altas.
+Aplicación web para seguir rutinas de entrenamiento: catálogo de ejercicios, registro diario y análisis de progreso.
+
+**Deploy:** https://mytrainapp-485a8.web.app
 
 ## Características
 
 - **Biblioteca de ejercicios** con búsqueda y filtros por categoría y grupo muscular. Permite crear ejercicios propios.
-- **Rutinas** activables/desactivables. Incluye una plantilla base y permite crear rutinas personalizadas por día.
-- **Cronograma + check-in diario**: duración, nivel de fatiga, y por serie reps, peso, RIR y fallo.
+- **Rutinas** personalizables por día, activables/desactivables.
+- **Cronograma** con registro diario: duración, nivel de fatiga, y por serie reps, peso, RIR y fallo.
 - **Análisis**: constancia (heatmap), adherencia semanal, evolución de reps/carga, volumen por grupo muscular y esfuerzo vs. fatiga.
+- **Mi cuenta**: datos de la cuenta, estadísticas y exportación de los datos propios.
 - Autenticación con Google; cada usuario solo accede a sus propios datos.
 
 ## Stack
@@ -33,23 +36,23 @@ En el proyecto de Firebase hay que habilitar **Google** en Authentication y crea
 | `npm run dev` | Servidor de desarrollo |
 | `npm run build` | Build de producción en `dist/` |
 | `npm run preview` | Sirve el build localmente |
-| `npm run seed` | Carga ejercicios y la rutina plantilla en Firestore (requiere permisos de escritura temporales) |
+| `npm run seed` | Carga los datos de ejemplo en Firestore (requiere permisos de escritura temporales) |
 
 ## Estructura
 
 ```
 src/
-  pages/        Vistas (Login, Today, Library, Routines, Schedule, SessionLog, Analysis, editores)
-  components/   UI compartida (Layout, Spinner)
-  hooks/        useCatalog (ejercicios/rutinas), useLogs (registros)
+  pages/        Vistas (Login, Today, Library, Routines, Schedule, SessionLog, Analysis, Account, editores)
+  components/   UI compartida (Layout, AccountMenu, Spinner, icons)
+  hooks/        CatalogProvider/useCatalog (ejercicios/rutinas), LogsProvider/useLogs (registros)
   context/      AuthContext
-  lib/          firebase, helpers de fechas y sesiones
-  data/         seedData (rutina y ejercicios base)
+  lib/          firebase, helpers de fechas/sesiones, exportData
+  data/         seedData (ejercicios y rutina de ejemplo)
 ```
 
 ## Datos
 
-- `exercises` y `routines` base viven en el código (`src/data/seedData.js`) y la app funciona aunque Firestore esté vacío.
+- Los `exercises` y `routines` de ejemplo viven en el código (`src/data/seedData.js`), así la app funciona aunque Firestore esté vacío.
 - Lo que creas tú (ejercicios, rutinas, registros) se guarda bajo `users/{uid}/` y es privado.
 - Las reglas de seguridad están en `firestore.rules`.
 
