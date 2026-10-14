@@ -51,6 +51,7 @@ export default function SessionLog() {
   )
 
   const existing = logs.find((l) => l.date === dateISO)
+  const draftKey = `trainapp-draft-${dateISO}-${weekday}`
 
   const [trained, setTrained] = useState(true)
   const [duration, setDuration] = useState('')
@@ -60,9 +61,31 @@ export default function SessionLog() {
   const [saving, setSaving] = useState(false)
   const [initialized, setInitialized] = useState(false)
 
-  // Initialize form from existing log or routine template.
+  // Initialize form: a saved draft (in-progress edit) wins; otherwise the
+  // existing log; otherwise the empty template.
   useEffect(() => {
     if (loading || logsLoading || initialized || !day) return
+
+    const draft = readDraft(draftKey)
+    if (draft) {
+      setTrained(draft.trained ?? true)
+      setDuration(draft.duration ?? '')
+      setFatigue(draft.fatigue ?? 'ok')
+      setNotes(draft.notes ?? '')
+      // Reconcile the draft entries over the current template structure.
+      const base = buildEntries(day)
+      if (draft.entries?.length) {
+        for (const saved of draft.entries) {
+          const idx = base.findIndex((e) => e.exerciseId === saved.exerciseId)
+          if (idx >= 0) base[idx] = saved
+          else base.push(saved)
+        }
+      }
+      setEntries(base)
+      setInitialized(true)
+      return
+    }
+
     if (existing) {
       setTrained(existing.trained ?? true)
       setDuration(existing.durationMinutes ?? '')
@@ -82,7 +105,14 @@ export default function SessionLog() {
       setEntries(buildEntries(day))
     }
     setInitialized(true)
-  }, [loading, logsLoading, day, existing, initialized])
+  }, [loading, logsLoading, day, existing, initialized, draftKey])
+
+  // Persist the in-progress form to localStorage on every change (after init),
+  // so a reload or navigating away and back keeps what the user was typing.
+  useEffect(() => {
+    if (!initialized) return
+    writeDraft(draftKey, { trained, duration, fatigue, notes, entries })
+  }, [initialized, draftKey, trained, duration, fatigue, notes, entries])
 
   if (loading || logsLoading) return <Spinner />
   if (!day) {
@@ -165,6 +195,7 @@ export default function SessionLog() {
         notes: notes.trim(),
         entries: trained ? cleanEntries : [],
       })
+      clearDraft(draftKey)
       navigate('/cronograma')
     } catch (err) {
       console.error(err)
@@ -178,6 +209,7 @@ export default function SessionLog() {
     if (!existing) return
     if (!confirm('¿Eliminar el registro de este día?')) return
     await deleteLog(existing.id)
+    clearDraft(draftKey)
     navigate('/cronograma')
   }
 
@@ -474,6 +506,34 @@ function SetRow({ index, set, tracking, onUpdate, onRemove }) {
       {removeBtn}
     </div>
   )
+}
+
+// --- Draft persistence (localStorage) -------------------------------------
+// Keeps the in-progress form across reloads and navigation until the user
+// saves or deletes the session.
+function readDraft(key) {
+  try {
+    const raw = localStorage.getItem(key)
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
+function writeDraft(key, data) {
+  try {
+    localStorage.setItem(key, JSON.stringify(data))
+  } catch {
+    /* storage full or unavailable — ignore */
+  }
+}
+
+function clearDraft(key) {
+  try {
+    localStorage.removeItem(key)
+  } catch {
+    /* ignore */
+  }
 }
 
 // Returns the ISO date of the given weekday within the current week.
