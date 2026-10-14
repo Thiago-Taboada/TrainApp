@@ -5,6 +5,7 @@ import { LogsProvider } from './hooks/useLogs'
 import Layout from './components/Layout.jsx'
 import Spinner from './components/Spinner.jsx'
 import Login from './pages/Login.jsx'
+import VerifyEmail from './pages/VerifyEmail.jsx'
 import Today from './pages/Today.jsx'
 import Library from './pages/Library.jsx'
 import ExerciseDetail from './pages/ExerciseDetail.jsx'
@@ -17,7 +18,7 @@ import ExerciseEditor from './pages/ExerciseEditor.jsx'
 import Account from './pages/Account.jsx'
 
 export default function App() {
-  const { user, loading } = useAuth()
+  const { user, loading, needsEmailVerification } = useAuth()
 
   if (loading) {
     return (
@@ -28,6 +29,9 @@ export default function App() {
   }
 
   if (!user) return <Login />
+
+  // Email/password accounts must verify before using the app.
+  if (needsEmailVerification) return <VerifyEmail />
 
   return (
     <CatalogProvider>

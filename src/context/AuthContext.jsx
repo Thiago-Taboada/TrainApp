@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
+  sendEmailVerification,
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut as fbSignOut,
@@ -94,12 +95,38 @@ export function AuthProvider({ children }) {
         await updateProfile(u, { displayName })
       }
       await upsertProfile({ ...u, displayName: displayName || u.displayName })
+      // Send the verification email. The app will gate access until verified.
+      await sendEmailVerification(u)
       return true
     } catch (err) {
       setError(friendlyAuthError(err?.code))
       console.error('registerWithEmail', err)
       return false
     }
+  }
+
+  // Resend the verification email to the current user.
+  async function resendVerification() {
+    setError(null)
+    if (!auth.currentUser) return false
+    try {
+      await sendEmailVerification(auth.currentUser)
+      return true
+    } catch (err) {
+      setError(friendlyAuthError(err?.code))
+      console.error('resendVerification', err)
+      return false
+    }
+  }
+
+  // Re-fetch the current user from Firebase to pick up a fresh emailVerified
+  // value after the user clicks the link in their inbox.
+  async function reloadUser() {
+    if (!auth.currentUser) return false
+    await auth.currentUser.reload()
+    const fresh = auth.currentUser
+    setUser({ ...fresh }) // new ref so React re-renders
+    return fresh?.emailVerified ?? false
   }
 
   function clearError() {
@@ -110,13 +137,21 @@ export function AuthProvider({ children }) {
     await fbSignOut(auth)
   }
 
+  // Email/password accounts must verify their email. Google accounts come
+  // pre-verified, so they're never gated.
+  const isPasswordUser = !!user?.providerData?.some((p) => p.providerId === 'password')
+  const needsEmailVerification = !!user && isPasswordUser && !user.emailVerified
+
   const value = {
     user,
     loading,
     error,
+    needsEmailVerification,
     signInWithGoogle,
     signInWithEmail,
     registerWithEmail,
+    resendVerification,
+    reloadUser,
     clearError,
     signOut,
   }
