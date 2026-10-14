@@ -58,6 +58,7 @@ export default function WorkoutRunner() {
           clearInterval(intervalRef.current)
           setResting(false)
           beep()
+          vibrate()
           return 0
         }
         return r - 1
@@ -273,6 +274,16 @@ function RestView({ remaining, total, nextStep, onSkip, onAddTime, meta }) {
       </div>
     </div>
   )
+}
+
+// Vibrate the device when rest ends. Supported mainly on Android browsers;
+// iOS Safari ignores it, which is fine.
+function vibrate() {
+  try {
+    if (navigator.vibrate) navigator.vibrate([200, 100, 200])
+  } catch {
+    /* no-op */
+  }
 }
 
 // Short beep when the rest ends. Uses the Web Audio API; fails silently.
