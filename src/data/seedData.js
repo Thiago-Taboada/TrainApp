@@ -1,4 +1,4 @@
-// Seed data for TrainApp, extracted from the user's "Rutinas de fuerza y
+// Seed data for Vortx, extracted from the user's "Rutinas de fuerza y
 // flexibilidad" PDF. This is the single source of truth used both to seed
 // Firestore and as a local fallback so the app works before seeding.
 //

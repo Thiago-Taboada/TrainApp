@@ -51,7 +51,7 @@ export default function SessionLog() {
   )
 
   const existing = logs.find((l) => l.date === dateISO)
-  const draftKey = `trainapp-draft-${dateISO}-${weekday}`
+  const draftKey = `vortx-draft-${dateISO}-${weekday}`
 
   const [trained, setTrained] = useState(true)
   const [duration, setDuration] = useState('')

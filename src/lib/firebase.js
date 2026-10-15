@@ -1,10 +1,14 @@
-// Firebase initialization for TrainApp.
+// Firebase initialization for Vortx.
 // Config is read from environment variables (see .env / .env.example).
 // These client values aren't secret, but we keep them out of the repo.
 // Real data protection comes from Firestore security rules.
 import { initializeApp } from 'firebase/app'
 import { getAuth, GoogleAuthProvider } from 'firebase/auth'
-import { getFirestore } from 'firebase/firestore'
+import {
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+} from 'firebase/firestore'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -25,7 +29,11 @@ if (!firebaseConfig.apiKey) {
 const app = initializeApp(firebaseConfig)
 
 export const auth = getAuth(app)
-export const db = getFirestore(app)
+
+// Firestore with offline persistence (cache survives reloads; works offline).
+export const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+})
 export const googleProvider = new GoogleAuthProvider()
 googleProvider.setCustomParameters({ prompt: 'select_account' })
 

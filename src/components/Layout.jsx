@@ -19,7 +19,7 @@ export default function Layout({ children }) {
       <header className="sticky top-0 z-20 border-b border-brand-500/20 bg-ink-950/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
-            <span className="brand-font text-2xl leading-none text-brand-300">Train App</span>
+            <span className="brand-font text-2xl leading-none text-brand-300">Vortx</span>
             <span className="ml-1 hidden font-mono text-xs uppercase tracking-widest text-neon-pink sm:inline">
               // {current.label}
             </span>

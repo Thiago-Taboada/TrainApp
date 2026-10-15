@@ -48,7 +48,7 @@ export default function Login() {
 
       <div className="relative w-full max-w-sm rounded-2xl border border-brand-500/30 bg-ink-850/80 p-8 shadow-neon-soft backdrop-blur-md">
         <div className="mb-6 flex flex-col items-center text-center">
-          <h1 className="brand-font animate-flicker text-6xl text-brand-300">Train App</h1>
+          <h1 className="brand-font animate-flicker text-6xl text-brand-300">Vortx</h1>
           <p className="mt-2 font-mono text-xs uppercase tracking-widest text-neon-pink">
             // Libera tu potencial
           </p>

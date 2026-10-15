@@ -2,7 +2,7 @@
 // browser. Everything runs client-side; no server involved.
 export function exportUserData({ user, logs, weights, customExercises, customRoutines, activeRoutineIds }) {
   const payload = {
-    app: 'TrainApp',
+    app: 'Vortx',
     exportedAt: new Date().toISOString(),
     account: {
       uid: user?.uid ?? null,
@@ -23,7 +23,7 @@ export function exportUserData({ user, logs, weights, customExercises, customRou
   const a = document.createElement('a')
   const date = new Date().toISOString().slice(0, 10)
   a.href = url
-  a.download = `trainapp-datos-${date}.json`
+  a.download = `vortx-datos-${date}.json`
   document.body.appendChild(a)
   a.click()
   a.remove()

@@ -1,8 +1,8 @@
-# Train App
+# Vortx
 
 Aplicación web para seguir rutinas de entrenamiento: catálogo de ejercicios, registro diario y análisis de progreso.
 
-**Deploy:** https://mytrainapp-485a8.web.app
+**Deploy:** https://project-vortx.web.app
 
 ## Características
 
@@ -11,11 +11,13 @@ Aplicación web para seguir rutinas de entrenamiento: catálogo de ejercicios, r
 - **Cronograma** con registro diario: duración, nivel de fatiga, y por serie reps, peso, RIR y fallo.
 - **Análisis**: constancia (heatmap), adherencia semanal, evolución de reps/carga, volumen por grupo muscular y esfuerzo vs. fatiga.
 - **Mi cuenta**: datos de la cuenta, estadísticas y exportación de los datos propios.
-- Autenticación con Google; cada usuario solo accede a sus propios datos.
+- **Peso corporal**: registro semanal con recordatorio y gráfico de evolución.
+- Autenticación con Google o correo/contraseña; cada usuario solo accede a sus propios datos.
+- **PWA instalable** con soporte offline (manifest + service worker).
 
 ## Stack
 
-React + Vite · Tailwind CSS · Firebase (Auth + Firestore + Hosting) · Recharts
+React + Vite · Tailwind CSS · Firebase (Auth + Firestore + Hosting) · Recharts · vite-plugin-pwa
 
 ## Puesta en marcha
 

@@ -104,7 +104,7 @@ export default function AccountMenu() {
           </div>
 
           <p className="px-4 pb-3 pt-1 text-center font-mono text-[10px] uppercase tracking-widest text-slate-600">
-            Train App · v0.1.0
+            Vortx · v0.1.0
           </p>
         </div>
       )}
