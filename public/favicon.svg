@@ -1,10 +1,64 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-  <rect width="48" height="48" rx="10" fill="#19328f"/>
-  <g fill="#fff">
-    <rect x="9" y="21" width="5" height="6" rx="1.5"/>
-    <rect x="34" y="21" width="5" height="6" rx="1.5"/>
-    <rect x="14" y="18" width="4" height="12" rx="1.5"/>
-    <rect x="30" y="18" width="4" height="12" rx="1.5"/>
-    <rect x="18" y="22.5" width="12" height="3" rx="1.5"/>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0e1a"/>
+      <stop offset="1" stop-color="#05070e"/>
+    </linearGradient>
+    <linearGradient id="bar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#00f0ff"/>
+      <stop offset="1" stop-color="#4df6ff"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="1.1" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="brushGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="0.9" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Panel -->
+  <rect width="48" height="48" rx="11" fill="url(#bg)"/>
+
+  <!-- Subtle grid -->
+  <g stroke="#00f0ff" stroke-opacity="0.08" stroke-width="0.6">
+    <path d="M12 4V44M24 4V44M36 4V44M4 16H44M4 32H44"/>
+  </g>
+
+  <!-- Magenta accent flare -->
+  <circle cx="38" cy="10" r="7" fill="#ff2bd6" opacity="0.18"/>
+
+  <!-- Rough brush-stroke frame: thick, irregular, hand-painted look -->
+  <g fill="none" stroke="#00f0ff" stroke-linecap="round" stroke-linejoin="round" filter="url(#brushGlow)">
+    <!-- top edge -->
+    <path d="M6 5.2 C14 3.4, 22 4.6, 30 3.9 C36 3.4, 40 4.8, 43 4.2"
+          stroke-width="3.1" stroke-opacity="0.95"/>
+    <!-- right edge -->
+    <path d="M43.4 6 C44.8 13, 43.6 21, 44.3 29 C44.7 35, 43.2 39, 43.8 43"
+          stroke-width="2.6" stroke-opacity="0.9"/>
+    <!-- bottom edge -->
+    <path d="M43 43.2 C35 44.9, 26 43.7, 18 44.4 C12 44.8, 8 43.4, 4.7 44"
+          stroke-width="3.3" stroke-opacity="0.95"/>
+    <!-- left edge -->
+    <path d="M4.4 43 C3.1 36, 4.3 28, 3.7 20 C3.4 14, 4.9 10, 4.2 5.4"
+          stroke-width="2.5" stroke-opacity="0.9"/>
+  </g>
+
+  <!-- Neon dumbbell -->
+  <g filter="url(#glow)">
+    <g fill="url(#bar)">
+      <rect x="8" y="20.5" width="4.5" height="7" rx="1.4"/>
+      <rect x="35.5" y="20.5" width="4.5" height="7" rx="1.4"/>
+      <rect x="12.5" y="17.5" width="4" height="13" rx="1.4"/>
+      <rect x="31.5" y="17.5" width="4" height="13" rx="1.4"/>
+      <rect x="16" y="22.5" width="16" height="3" rx="1.5"/>
+    </g>
   </g>
 </svg>
