@@ -254,10 +254,10 @@ export default function SessionLog() {
             <div>
               <label className="label mb-1.5">Duración total (minutos)</label>
               <input
-                type="number"
+                type="text"
                 inputMode="numeric"
                 value={duration}
-                onChange={(e) => setDuration(e.target.value)}
+                onChange={(e) => setDuration(e.target.value.replace(/\D/g, '').slice(0, 3))}
                 placeholder="Ej. 45"
                 className="input"
               />

@@ -54,6 +54,7 @@ export default function WorkoutRunner() {
   const [index, setIndex] = useState(0)
   const [resting, setResting] = useState(false)
   const [remaining, setRemaining] = useState(0)
+  const [restTotal, setRestTotal] = useState(0)
   const [done, setDone] = useState(false)
   const intervalRef = useRef(null)
 
@@ -99,6 +100,7 @@ export default function WorkoutRunner() {
   function completeSet() {
     if (step.restSeconds > 0 && !isLast) {
       setRemaining(step.restSeconds)
+      setRestTotal(step.restSeconds)
       setResting(true)
     } else if (!isLast) {
       goNext()
@@ -121,7 +123,10 @@ export default function WorkoutRunner() {
   }
 
   function addTime() {
+    // Grow both the remaining time and the ring's total so the circle stays
+    // in sync (adding time shouldn't make the ring overfill or spin backwards).
     setRemaining((r) => r + 15)
+    setRestTotal((t) => t + 15)
   }
 
   function finish() {
@@ -176,7 +181,7 @@ export default function WorkoutRunner() {
       {resting ? (
         <RestView
           remaining={remaining}
-          total={step.restSeconds}
+          total={restTotal}
           nextStep={steps[index + 1]}
           onSkip={skipRest}
           onAddTime={addTime}
@@ -368,7 +373,10 @@ function ExerciseTimer({ target, repsText, perSide, onComplete }) {
 }
 
 function RestView({ remaining, total, nextStep, onSkip, onAddTime, meta }) {
-  const pct = total > 0 ? ((total - remaining) / total) * 100 : 100
+  // Fraction of time already elapsed, clamped to [0,1] so the ring can never
+  // overfill or spin backwards even if time is added mid-rest.
+  const elapsedFraction = total > 0 ? Math.min(1, Math.max(0, (total - remaining) / total)) : 1
+  const pct = elapsedFraction * 100
   return (
     <div className="card p-6 text-center">
       <p className="font-mono text-xs uppercase tracking-widest text-neon-amber">Descanso</p>
