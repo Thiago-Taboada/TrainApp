@@ -9,9 +9,20 @@ const NAV = [
   { to: '/analisis', label: 'Análisis', icon: ChartIcon },
 ]
 
+// Labels for routes that aren't in the main nav (shown in the header subtitle).
+const EXTRA_LABELS = [
+  { to: '/cuenta', label: 'Mi cuenta' },
+  { to: '/sesion', label: 'Registro' },
+  { to: '/entrenar', label: 'Entrenamiento' },
+]
+
 export default function Layout({ children }) {
   const location = useLocation()
-  const current = NAV.find((n) => (n.end ? location.pathname === n.to : location.pathname.startsWith(n.to) && n.to !== '/')) ?? NAV[0]
+  const path = location.pathname
+  const current =
+    NAV.find((n) => (n.end ? path === n.to : path.startsWith(n.to) && n.to !== '/')) ??
+    EXTRA_LABELS.find((n) => path.startsWith(n.to)) ??
+    (path === '/' ? NAV[0] : null)
 
   return (
     <div className="min-h-dvh">
@@ -20,9 +31,11 @@ export default function Layout({ children }) {
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
             <span className="brand-font text-2xl leading-none text-brand-300">Vortx</span>
-            <span className="ml-1 hidden font-mono text-xs uppercase tracking-widest text-neon-pink sm:inline">
-              // {current.label}
-            </span>
+            {current && (
+              <span className="ml-1 hidden font-mono text-xs uppercase tracking-widest text-neon-pink sm:inline">
+                // {current.label}
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-3">

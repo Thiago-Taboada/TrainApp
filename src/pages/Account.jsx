@@ -1,17 +1,18 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useCatalog } from '../hooks/useCatalog'
 import { useLogs } from '../hooks/useLogs'
-import { exportUserData } from '../lib/exportData'
+import { exportUserData, parseImportFile } from '../lib/exportData'
 import { fromISODate } from '../lib/dates'
 import { computeStreak } from '../lib/streak'
 import Spinner from '../components/Spinner.jsx'
+import { FlameIcon } from '../components/icons.jsx'
 
 export default function Account() {
   const { user, signOut, providerLabel, isPasswordUser, updateDisplayName, deleteAccount, error, clearError } = useAuth()
-  const { exercises, routines, activeRoutines, activeRoutineIds, loading } = useCatalog()
-  const { logs, weights, loading: logsLoading } = useLogs()
+  const { exercises, routines, activeRoutines, activeRoutineIds, loading, importCatalog } = useCatalog()
+  const { logs, weights, loading: logsLoading, importLogsAndWeights } = useLogs()
   const navigate = useNavigate()
 
   const stats = useMemo(() => computeStats(logs), [logs])
@@ -24,6 +25,11 @@ export default function Account() {
   const [deleting, setDeleting] = useState(false)
   const [reauthNeeded, setReauthNeeded] = useState(false)
   const [reauthPassword, setReauthPassword] = useState('')
+  const [importPreview, setImportPreview] = useState(null)
+  const [importError, setImportError] = useState('')
+  const [importing, setImporting] = useState(false)
+  const [importDone, setImportDone] = useState(false)
+  const fileInputRef = useRef(null)
 
   if (loading || logsLoading) return <Spinner />
 
@@ -36,6 +42,46 @@ export default function Account() {
       customRoutines: routines.filter((r) => r.isCustom),
       activeRoutineIds,
     })
+  }
+
+  async function handleFileChosen(e) {
+    const file = e.target.files?.[0]
+    e.target.value = '' // allow re-selecting the same file later
+    if (!file) return
+    setImportError('')
+    setImportDone(false)
+    setImportPreview(null)
+    try {
+      const payload = await parseImportFile(file)
+      setImportPreview(payload)
+    } catch (err) {
+      setImportError(err?.message ?? 'No se pudo leer el archivo.')
+    }
+  }
+
+  async function runImport() {
+    if (!importPreview) return
+    setImporting(true)
+    setImportError('')
+    try {
+      await importLogsAndWeights(importPreview.logs, importPreview.weights)
+      await importCatalog({
+        customExercises: importPreview.customExercises,
+        customRoutines: importPreview.customRoutines,
+        activeRoutineIds: importPreview.activeRoutineIds,
+      })
+      setImportPreview(null)
+      setImportDone(true)
+    } catch (err) {
+      setImportError(err?.message ?? 'No se pudo importar.')
+    } finally {
+      setImporting(false)
+    }
+  }
+
+  function cancelImport() {
+    setImportPreview(null)
+    setImportError('')
   }
 
   function startEdit() {
@@ -125,12 +171,28 @@ export default function Account() {
         </div>
       </div>
 
+      {/* Streak */}
+      <div className="card flex items-center gap-4 p-5">
+        <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border ${streak.current > 0 ? 'border-neon-amber/50 text-neon-amber shadow-[0_0_18px_rgba(255,176,32,0.3)]' : 'border-slate-500/30 text-slate-500'}`}>
+          <FlameIcon active={streak.current > 0} />
+        </div>
+        <div className="flex-1">
+          <p className="label">Racha actual</p>
+          <p className={`font-display text-3xl font-extrabold ${streak.current > 0 ? 'text-neon-amber' : 'text-slate-400'}`}>
+            {streak.current} <span className="text-base font-semibold text-slate-500">día{streak.current === 1 ? '' : 's'}</span>
+          </p>
+          <p className="text-xs text-slate-500">
+            Mejor racha: {streak.best} día{streak.best === 1 ? '' : 's'}
+          </p>
+        </div>
+      </div>
+
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat label="Entrenamientos" value={stats.total} tone="brand" />
-        <Stat label="Racha (días)" value={streak.current} tone="pink" />
-        <Stat label="Mejor racha" value={streak.best} tone="brand" />
         <Stat label="Minutos totales" value={stats.totalMinutes} tone="pink" />
+        <Stat label="Rutinas activas" value={activeRoutines.length} tone="brand" />
+        <Stat label="Ejercicios propios" value={exercises.filter((e) => e.isCustom).length} tone="pink" />
       </div>
 
       {/* Activity summary */}
@@ -138,14 +200,77 @@ export default function Account() {
         <h2 className="mb-3 font-display font-bold uppercase tracking-wide text-slate-100">Actividad</h2>
         <Row label="Primer registro" value={stats.firstDate ?? '—'} />
         <Row label="Último entrenamiento" value={stats.lastDate ?? '—'} />
-        <Row label="Promedio por sesión" value={stats.avgMinutes ? `${stats.avgMinutes} min` : '—'} />
-        <Row label="Ejercicios propios" value={exercises.filter((e) => e.isCustom).length} last />
+        <Row label="Promedio por sesión" value={stats.avgMinutes ? `${stats.avgMinutes} min` : '—'} last />
       </div>
 
       {/* Actions */}
-      <div className="card divide-y divide-brand-500/15 p-1.5">
-        <ActionRow onClick={handleExport} icon={<DownloadIcon />} label="Exportar mis datos" sub="Descarga un respaldo en JSON" />
+      <div className="card p-1.5">
+        <ActionRow onClick={handleExport} icon={<DownloadIcon />} label="Exportar mis datos" />
+        <div className="mx-3 border-t border-brand-500/15" />
+        <ActionRow onClick={() => fileInputRef.current?.click()} icon={<UploadIcon />} label="Restaurar backup" />
       </div>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="application/json,.json"
+        className="hidden"
+        onChange={handleFileChosen}
+      />
+
+      {/* Import confirmation */}
+      {importPreview && (
+        <div className="card border-neon-red/40 p-5">
+          <h2 className="font-display font-bold uppercase tracking-wide text-neon-red">Restaurar backup</h2>
+
+          <div className="mt-3 rounded-lg border border-neon-red/40 bg-neon-red/10 p-3 text-sm text-neon-red">
+            <p className="font-semibold">Esto reemplazará TODOS tus datos actuales.</p>
+            <p className="mt-1 text-neon-red/90">
+              Tus registros de entrenamiento, pesos, rutinas y ejercicios propios se
+              borrarán por completo y se sustituirán por los del archivo. Esta acción
+              no se puede deshacer.
+            </p>
+          </div>
+
+          <p className="mt-3 text-sm text-slate-400">El backup contiene:</p>
+          <ul className="mt-2 space-y-1 text-sm text-slate-300">
+            <li>· {importPreview.logs.length} registros de entrenamiento</li>
+            <li>· {importPreview.weights.length} registros de peso</li>
+            <li>· {importPreview.customRoutines.length} rutinas propias</li>
+            <li>· {importPreview.customExercises.length} ejercicios propios</li>
+          </ul>
+          <p className="mt-3 text-xs text-neon-amber">
+            Consejo: exporta tus datos actuales antes de continuar, por si quieres volver atrás.
+          </p>
+          <p className="mt-2 text-xs text-slate-500">No se importa nombre ni correo.</p>
+
+          {importError && (
+            <p className="mt-3 rounded-lg border border-neon-red/40 bg-neon-red/10 px-3 py-2 text-sm text-neon-red">
+              {importError}
+            </p>
+          )}
+
+          <div className="mt-4 flex gap-2">
+            <button
+              onClick={runImport}
+              disabled={importing}
+              className="btn flex-1 border border-neon-red/60 bg-neon-red/20 text-neon-red hover:bg-neon-red/30"
+            >
+              {importing ? 'Restaurando…' : 'Sí, reemplazar todo'}
+            </button>
+            <button onClick={cancelImport} className="btn-ghost flex-1">Cancelar</button>
+          </div>
+        </div>
+      )}
+      {importError && !importPreview && (
+        <p className="rounded-lg border border-neon-red/40 bg-neon-red/10 px-3 py-2 text-sm text-neon-red">
+          {importError}
+        </p>
+      )}
+      {importDone && (
+        <p className="rounded-lg border border-brand-400/40 bg-brand-500/10 px-3 py-2 text-sm text-brand-300">
+          Backup restaurado correctamente.
+        </p>
+      )}
 
       <button
         onClick={signOut}
@@ -282,6 +407,13 @@ function DownloadIcon() {
   return (
     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v12m0 0 4-4m-4 4-4-4M5 20h14" />
+    </svg>
+  )
+}
+function UploadIcon() {
+  return (
+    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 20V8m0 0 4 4m-4-4-4 4M5 4h14" />
     </svg>
   )
 }

@@ -11,14 +11,27 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDocs,
   onSnapshot,
   serverTimestamp,
   setDoc,
+  writeBatch,
 } from 'firebase/firestore'
 import { createElement } from 'react'
 import { db } from '../lib/firebase'
 import { useAuth } from '../context/AuthContext.jsx'
 import { EXERCISES, ROUTINE_TEMPLATE } from '../data/seedData'
+
+// Delete every doc in a user subcollection, in batches (Firestore caps at 500).
+async function wipeSubcollection(uid, name) {
+  const snap = await getDocs(collection(db, 'users', uid, name))
+  const docs = snap.docs
+  for (let i = 0; i < docs.length; i += 400) {
+    const batch = writeBatch(db)
+    for (const d of docs.slice(i, i + 400)) batch.delete(d.ref)
+    await batch.commit()
+  }
+}
 
 // -----------------------------------------------------------------------------
 // Catalog = single source of truth for exercises + routines. It merges:
@@ -184,6 +197,44 @@ export function CatalogProvider({ children }) {
     [user, setActiveRoutine],
   )
 
+  // Restore custom exercises + routines from a backup: WIPES existing custom
+  // data first, then writes exactly what's in the file. Active routine ids are
+  // replaced by the file's value (defaulting to the template if empty).
+  const importCatalog = useCallback(
+    async ({ customExercises = [], customRoutines = [], activeRoutineIds: ids = [] }) => {
+      if (!user) throw new Error('No autenticado')
+      await wipeSubcollection(user.uid, 'exercises')
+      await wipeSubcollection(user.uid, 'routines')
+      for (const ex of customExercises) {
+        if (!ex.id) continue
+        const { id, isCustom: _c, ...rest } = ex
+        await setDoc(doc(db, 'users', user.uid, 'exercises', id), {
+          ...rest,
+          updatedAt: serverTimestamp(),
+        })
+      }
+      for (const r of customRoutines) {
+        if (!r.id) continue
+        const { id, isCustom: _c, ...rest } = r
+        await setDoc(doc(db, 'users', user.uid, 'routines', id), {
+          ...rest,
+          isTemplate: false,
+          updatedAt: serverTimestamp(),
+        })
+      }
+      await setDoc(
+        doc(db, 'users', user.uid),
+        {
+          activeRoutineIds: ids.length ? ids : [ROUTINE_TEMPLATE.id],
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true },
+      )
+      return { exercises: customExercises.length, routines: customRoutines.length }
+    },
+    [user],
+  )
+
   const value = {
     loading,
     exercises,
@@ -195,6 +246,7 @@ export function CatalogProvider({ children }) {
     saveRoutine,
     deleteRoutine,
     setActiveRoutine,
+    importCatalog,
   }
 
   return createElement(CatalogContext.Provider, { value }, children)

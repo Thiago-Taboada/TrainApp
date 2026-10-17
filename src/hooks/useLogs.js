@@ -10,13 +10,26 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDocs,
   onSnapshot,
   orderBy,
   query,
   setDoc,
+  writeBatch,
 } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import { useAuth } from '../context/AuthContext.jsx'
+
+// Delete every doc in a user subcollection, in batches (Firestore caps at 500).
+async function wipeSubcollection(uid, name) {
+  const snap = await getDocs(collection(db, 'users', uid, name))
+  const docs = snap.docs
+  for (let i = 0; i < docs.length; i += 400) {
+    const batch = writeBatch(db)
+    for (const d of docs.slice(i, i + 400)) batch.delete(d.ref)
+    await batch.commit()
+  }
+}
 
 // Realtime subscription to the current user's session logs.
 // Doc id == ISO date (one session per day), which makes a day's check-in a
@@ -107,7 +120,37 @@ export function LogsProvider({ children }) {
     [user],
   )
 
-  const value = { logs, weights, loading, saveLog, deleteLog, saveWeight }
+  // Restore logs + weights from a backup: WIPES existing data first, then
+  // writes exactly what's in the file. Returns counts.
+  const importLogsAndWeights = useCallback(
+    async (importedLogs = [], importedWeights = []) => {
+      if (!user) throw new Error('No autenticado')
+      await wipeSubcollection(user.uid, 'logs')
+      await wipeSubcollection(user.uid, 'weights')
+      for (const log of importedLogs) {
+        const id = log.id ?? log.date
+        if (!id) continue
+        const { id: _omit, ...rest } = log
+        await setDoc(
+          doc(db, 'users', user.uid, 'logs', id),
+          { ...rest, id, updatedAt: Date.now() },
+          { merge: true },
+        )
+      }
+      for (const w of importedWeights) {
+        if (!w.weekId) continue
+        await setDoc(
+          doc(db, 'users', user.uid, 'weights', w.weekId),
+          { ...w, updatedAt: Date.now() },
+          { merge: true },
+        )
+      }
+      return { logs: importedLogs.length, weights: importedWeights.length }
+    },
+    [user],
+  )
+
+  const value = { logs, weights, loading, saveLog, deleteLog, saveWeight, importLogsAndWeights }
   return createElement(LogsContext.Provider, { value }, children)
 }
 
