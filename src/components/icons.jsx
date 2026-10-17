@@ -17,6 +17,14 @@ export function PlayIcon({ className = 'h-5 w-5' }) {
   )
 }
 
+export function FlameIcon({ className = 'h-7 w-7', active = true }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round">
+      <path d="M12 2c1 3-1.5 4.5-1.5 7A2.5 2.5 0 0 0 13 11c.3-1 1-1.6 1-1.6.8 1 3 2.9 3 6.1a5 5 0 0 1-10 0c0-3.2 2.5-4.8 2.5-7.5 0-1.2-.3-2.3 2.5-6z" />
+    </svg>
+  )
+}
+
 export function RestIcon({ className = 'h-4 w-4' }) {
   // Crescent moon — "rest / recovery"
   return (

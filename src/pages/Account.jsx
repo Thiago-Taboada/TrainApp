@@ -4,7 +4,8 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { useCatalog } from '../hooks/useCatalog'
 import { useLogs } from '../hooks/useLogs'
 import { exportUserData } from '../lib/exportData'
-import { fromISODate, toISODate, addDays } from '../lib/dates'
+import { fromISODate } from '../lib/dates'
+import { computeStreak } from '../lib/streak'
 import Spinner from '../components/Spinner.jsx'
 
 export default function Account() {
@@ -14,6 +15,7 @@ export default function Account() {
   const navigate = useNavigate()
 
   const stats = useMemo(() => computeStats(logs), [logs])
+  const streak = useMemo(() => computeStreak(logs, activeRoutines), [logs, activeRoutines])
 
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState('')
@@ -126,9 +128,9 @@ export default function Account() {
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Stat label="Entrenamientos" value={stats.total} tone="brand" />
-        <Stat label="Racha (semanas)" value={stats.weekStreak} tone="pink" />
-        <Stat label="Minutos totales" value={stats.totalMinutes} tone="brand" />
-        <Stat label="Rutinas activas" value={activeRoutines.length} tone="pink" />
+        <Stat label="Racha (días)" value={streak.current} tone="pink" />
+        <Stat label="Mejor racha" value={streak.best} tone="brand" />
+        <Stat label="Minutos totales" value={stats.totalMinutes} tone="pink" />
       </div>
 
       {/* Activity summary */}
@@ -238,35 +240,7 @@ function computeStats(logs) {
     avgMinutes,
     firstDate,
     lastDate,
-    weekStreak: computeWeekStreak(trained),
   }
-}
-
-// Consecutive weeks (ending this week) with at least one trained session.
-function computeWeekStreak(trained) {
-  if (trained.length === 0) return 0
-  const weeks = new Set(trained.map((l) => weekKey(fromISODate(l.date))))
-  let streak = 0
-  let cursor = new Date()
-  // Walk back week by week while that week has activity.
-  for (let i = 0; i < 520; i++) {
-    const key = weekKey(cursor)
-    if (weeks.has(key)) {
-      streak++
-    } else if (i > 0) {
-      // allow the current week to be empty without breaking (grace)
-      break
-    }
-    cursor = addDays(cursor, -7)
-  }
-  return streak
-}
-
-function weekKey(date) {
-  const d = new Date(date)
-  const day = (d.getDay() + 6) % 7
-  d.setDate(d.getDate() - day)
-  return toISODate(d)
 }
 
 function fmt(iso) {
