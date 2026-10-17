@@ -26,6 +26,15 @@ function emptySet() {
   return { reps: '', weightKg: '', timeSeconds: '', effort: '', toFailure: false, done: false }
 }
 
+// On mobile the numeric keyboard shows a "Go/Enter" key. We don't want it to
+// submit anything; pressing it just blurs the field, which hides the keyboard.
+function blurOnEnter(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault()
+    e.currentTarget.blur()
+  }
+}
+
 // Build an empty entries array from a routine day's blocks.
 function buildEntries(day) {
   if (!day) return []
@@ -258,6 +267,7 @@ export default function SessionLog() {
                 inputMode="numeric"
                 value={duration}
                 onChange={(e) => setDuration(e.target.value.replace(/\D/g, '').slice(0, 3))}
+                onKeyDown={blurOnEnter}
                 placeholder="Ej. 45"
                 className="input"
               />
@@ -444,6 +454,7 @@ function SetRow({ index, set, tracking, onUpdate, onRemove }) {
           inputMode="numeric"
           value={set.timeSeconds}
           onChange={(e) => onUpdate('timeSeconds', e.target.value)}
+          onKeyDown={blurOnEnter}
           placeholder="—"
           className="input px-2 py-1.5 text-center"
         />
@@ -461,6 +472,7 @@ function SetRow({ index, set, tracking, onUpdate, onRemove }) {
         inputMode="numeric"
         value={set.reps}
         onChange={(e) => onUpdate('reps', e.target.value)}
+        onKeyDown={blurOnEnter}
         placeholder="reps"
         className="input w-0 flex-1 px-2 py-1.5 text-center"
       />
@@ -469,6 +481,7 @@ function SetRow({ index, set, tracking, onUpdate, onRemove }) {
         inputMode="decimal"
         value={set.weightKg}
         onChange={(e) => onUpdate('weightKg', e.target.value)}
+        onKeyDown={blurOnEnter}
         placeholder="kg"
         title="Peso extra (opcional). Vacío = peso corporal."
         className="input w-0 flex-1 px-2 py-1.5 text-center"
