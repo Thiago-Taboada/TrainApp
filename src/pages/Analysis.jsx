@@ -77,11 +77,19 @@ export default function Analysis() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <Header />
+
+      {/* Wide chart: needs horizontal room */}
       <BodyWeight weights={weights} logs={trainedLogs} />
-      <ConstancyHeatmap logs={trainedLogs} />
-      <WeeklyAdherence logs={trainedLogs} plannedPerWeek={plannedPerWeek} />
+
+      {/* Compact charts: two columns on large screens */}
+      <div className="grid gap-5 lg:grid-cols-2">
+        <ConstancyHeatmap logs={trainedLogs} />
+        <WeeklyAdherence logs={trainedLogs} plannedPerWeek={plannedPerWeek} />
+      </div>
+
+      {/* Wide chart: time series with selector */}
       <ExerciseEvolution
         logs={trainedLogs}
         exercises={exercises}
@@ -89,7 +97,13 @@ export default function Analysis() {
         activeEx={activeEx}
         onChange={setSelectedEx}
       />
-      <MuscleVolume logs={trainedLogs} exercises={exercises} />
+
+      {/* Compact charts: two columns on large screens */}
+      <div className="grid gap-5 lg:grid-cols-2">
+        <MuscleVolume logs={trainedLogs} exercises={exercises} />
+        <EffortDistribution logs={trainedLogs} />
+      </div>
+
       <EffortFatigue logs={trainedLogs} />
     </div>
   )
@@ -215,14 +229,14 @@ function ConstancyHeatmap({ logs }) {
 
   return (
     <Section title="Constancia" hint="Últimas 12 semanas. Cada cuadro es un día entrenado.">
-      <div className="flex gap-1 overflow-x-auto pb-1">
+      <div className="flex gap-1.5">
         {columns.map((col, i) => (
-          <div key={i} className="flex flex-col gap-1">
+          <div key={i} className="flex flex-1 flex-col gap-1.5">
             {col.map((iso) => (
               <div
                 key={iso}
                 title={iso}
-                className={`h-3.5 w-3.5 rounded-sm ${color(iso)} ${iso === todayISO ? 'ring-1 ring-brand-300' : ''} ${
+                className={`aspect-square w-full rounded-sm ${color(iso)} ${iso === todayISO ? 'ring-1 ring-brand-300' : ''} ${
                   iso > todayISO ? 'opacity-40' : ''
                 }`}
               />
@@ -365,26 +379,27 @@ function MuscleVolume({ logs, exercises }) {
       for (const entry of l.entries ?? []) {
         const ex = exercises.find((e) => e.id === entry.exerciseId)
         const groups = ex?.muscleGroups ?? []
-        const reps = entry.sets.reduce((a, s) => a + (s.reps ?? 0), 0)
-        for (const g of groups) map[g] = (map[g] ?? 0) + reps
+        // Count each logged set as 1 unit of volume for every muscle it works.
+        const sets = (entry.sets ?? []).length
+        for (const g of groups) map[g] = (map[g] ?? 0) + sets
       }
     }
     return Object.entries(map)
-      .map(([g, reps]) => ({ grupo: MUSCLE_LABEL[g] ?? g, reps }))
-      .sort((a, b) => b.reps - a.reps)
+      .map(([g, series]) => ({ grupo: MUSCLE_LABEL[g] ?? g, series }))
+      .sort((a, b) => b.series - a.series)
   }, [logs, exercises])
 
   if (data.length === 0) return null
 
   return (
-    <Section title="Volumen por grupo muscular" hint="Total de repeticiones acumuladas. Útil para detectar desequilibrios.">
+    <Section title="Volumen por grupo muscular" hint="Series acumuladas por músculo. La serie es la unidad estándar de volumen; útil para detectar desequilibrios.">
       <ResponsiveContainer width="100%" height={Math.max(180, data.length * 34)}>
         <BarChart data={data} layout="vertical" margin={{ top: 0, right: 10, left: 10, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#1c2743" />
-          <XAxis type="number" tick={{ fontSize: 11, fill: '#64748b' }} stroke="#2a3761" />
+          <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: '#64748b' }} stroke="#2a3761" />
           <YAxis type="category" dataKey="grupo" width={70} tick={{ fontSize: 11, fill: '#94a3b8' }} stroke="#2a3761" />
-          <Tooltip {...TOOLTIP} cursor={{ fill: 'rgba(0,240,255,0.06)' }} />
-          <Bar dataKey="reps" fill="#00f0ff" radius={[0, 6, 6, 0]} />
+          <Tooltip {...TOOLTIP} cursor={{ fill: 'rgba(0,240,255,0.06)' }} formatter={(v) => [`${v} series`, 'Volumen']} />
+          <Bar dataKey="series" name="Series" fill="#00f0ff" radius={[0, 6, 6, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </Section>
@@ -437,6 +452,55 @@ function EffortFatigue({ logs }) {
           <Tooltip {...TOOLTIP} formatter={(v) => FATIGUE_LABEL[v] ?? v} />
           <Area type="monotone" dataKey="fatiga" stroke="#ff2bd6" strokeWidth={2.5} fill="url(#fat)" />
         </AreaChart>
+      </ResponsiveContainer>
+    </Section>
+  )
+}
+
+// 6. Effort distribution: how many logged sets fell in each effort level.
+const EFFORT_META = [
+  { key: 'max', label: 'Al límite', color: '#ff3b5c' },
+  { key: 'hard', label: 'Exigente', color: '#ffb020' },
+  { key: 'easy', label: 'Cómodo', color: '#00f0ff' },
+]
+
+function EffortDistribution({ logs }) {
+  const { data, total } = useMemo(() => {
+    const counts = { max: 0, hard: 0, easy: 0 }
+    for (const l of logs)
+      for (const e of l.entries ?? [])
+        for (const s of e.sets ?? []) {
+          if (s.effort && counts[s.effort] != null) counts[s.effort]++
+        }
+    const t = counts.max + counts.hard + counts.easy
+    const d = EFFORT_META.map((m) => ({ nivel: m.label, series: counts[m.key], color: m.color }))
+    return { data: d, total: t }
+  }, [logs])
+
+  if (total === 0) {
+    return (
+      <Section title="Distribución de esfuerzo" hint="Cuántas series registraste en cada nivel de esfuerzo.">
+        <p className="py-6 text-center text-sm text-slate-400">
+          Marca el esfuerzo de tus series al registrar para ver esta distribución.
+        </p>
+      </Section>
+    )
+  }
+
+  return (
+    <Section title="Distribución de esfuerzo" hint="Series por nivel de esfuerzo. Entrenar cerca del límite (sin pasarte) impulsa el progreso.">
+      <ResponsiveContainer width="100%" height={Math.max(140, data.length * 44)}>
+        <BarChart data={data} layout="vertical" margin={{ top: 0, right: 10, left: 10, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#1c2743" />
+          <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: '#64748b' }} stroke="#2a3761" />
+          <YAxis type="category" dataKey="nivel" width={70} tick={{ fontSize: 11, fill: '#94a3b8' }} stroke="#2a3761" />
+          <Tooltip {...TOOLTIP} cursor={{ fill: 'rgba(0,240,255,0.06)' }} formatter={(v) => [`${v} series`, 'Series']} />
+          <Bar dataKey="series" name="Series" radius={[0, 6, 6, 0]}>
+            {data.map((d, i) => (
+              <Cell key={i} fill={d.color} />
+            ))}
+          </Bar>
+        </BarChart>
       </ResponsiveContainer>
     </Section>
   )
