@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { useCatalog } from '../hooks/useCatalog'
 import { CATEGORIES, SESSION_TYPE_META, WEEKDAYS } from '../data/seedData'
 import { formatRest } from '../lib/sessions'
@@ -63,6 +63,14 @@ export default function RoutineEditor({ admin = false }) {
   }, [loading, ready, editing, existing])
 
   if (loading) return <Spinner />
+
+  // Enforce the routine-slot limit on CREATE (guards direct URL access too).
+  if (!admin && !editing) {
+    const customCount = routines.filter((r) => r.isCustom).length
+    if (customCount >= catalog.routineSlots) {
+      return <Navigate to="/tienda" replace />
+    }
+  }
 
   // Template routines are read-only for normal users: offer to duplicate.
   // In admin mode the template IS editable, so skip this.

@@ -17,6 +17,16 @@ export function PlayIcon({ className = 'h-5 w-5' }) {
   )
 }
 
+export function CoinIcon({ className = 'h-7 w-7' }) {
+  // A coin with a "V" (Vortx) mark — symmetric, no orientation issues.
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M8.5 8.5 12 15.5 15.5 8.5" />
+    </svg>
+  )
+}
+
 export function FlameIcon({ className = 'h-7 w-7', active = true }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round">

@@ -21,6 +21,7 @@ import { createElement } from 'react'
 import { db } from '../lib/firebase'
 import { useAuth } from '../context/AuthContext.jsx'
 import { EXERCISES, ROUTINE_TEMPLATE } from '../data/seedData'
+import { BASE_ROUTINE_SLOTS } from '../lib/points'
 
 // Delete every doc in a user subcollection, in batches (Firestore caps at 500).
 async function wipeSubcollection(uid, name) {
@@ -53,6 +54,7 @@ export function CatalogProvider({ children }) {
   const [baseExercises, setBaseExercises] = useState(null)
   const [baseRoutines, setBaseRoutines] = useState(null)
   const [activeRoutineIds, setActiveRoutineIds] = useState([ROUTINE_TEMPLATE.id])
+  const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
   // Keep latest activeRoutineIds for callbacks without re-creating them.
@@ -65,6 +67,7 @@ export function CatalogProvider({ children }) {
       setUserExercises([])
       setUserRoutines([])
       setActiveRoutineIds([ROUTINE_TEMPLATE.id])
+      setProfile(null)
       setLoading(false)
       return
     }
@@ -101,6 +104,7 @@ export function CatalogProvider({ children }) {
       (snap) => {
         const data = snap.data()
         setActiveRoutineIds(data?.activeRoutineIds ?? [ROUTINE_TEMPLATE.id])
+        setProfile(data ?? {})
         release()
       },
       (err) => {
@@ -230,6 +234,28 @@ export function CatalogProvider({ children }) {
     [user],
   )
 
+  // Derived reward fields from the profile.
+  const pointsSpent = profile?.pointsSpent ?? 0
+  const routineSlots = profile?.routineSlots ?? BASE_ROUTINE_SLOTS
+
+  // Buy a routine slot: spend points and raise the slot limit by 1 (atomic-ish
+  // merge write). The caller checks affordability.
+  const buyRoutineSlot = useCallback(
+    async (cost) => {
+      if (!user) throw new Error('No autenticado')
+      await setDoc(
+        doc(db, 'users', user.uid),
+        {
+          pointsSpent: pointsSpent + cost,
+          routineSlots: routineSlots + 1,
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true },
+      )
+    },
+    [user, pointsSpent, routineSlots],
+  )
+
   // ---- admin: base catalog mutations (require admin per Firestore rules) ----
 
   const saveBaseExercise = useCallback(async (exercise) => {
@@ -335,6 +361,10 @@ export function CatalogProvider({ children }) {
     deleteRoutine,
     setActiveRoutine,
     importCatalog,
+    // rewards
+    pointsSpent,
+    routineSlots,
+    buyRoutineSlot,
     // admin / base catalog
     catalogSeeded,
     seedCatalog,

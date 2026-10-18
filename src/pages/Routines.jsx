@@ -7,12 +7,16 @@ export default function Routines() {
   const {
     loading,
     routines,
+    routineSlots,
     activeRoutineIds,
     setActiveRoutine,
     deleteRoutine,
   } = useCatalog()
 
   if (loading) return <Spinner />
+
+  const customCount = routines.filter((r) => r.isCustom).length
+  const atLimit = customCount >= routineSlots
 
   async function handleDelete(e, routine) {
     e.preventDefault()
@@ -33,10 +37,27 @@ export default function Routines() {
         </div>
       </div>
 
-      {/* Create button */}
-      <Link to="/rutinas/nueva" className="btn-primary w-full">
-        + Nueva rutina
-      </Link>
+      {/* Create button + slot usage */}
+      {atLimit ? (
+        <div className="card border-neon-amber/40 bg-neon-amber/5 p-4">
+          <p className="text-sm font-semibold text-neon-amber">Alcanzaste tu límite de rutinas</p>
+          <p className="mt-1 text-xs text-slate-400">
+            Usas {customCount} de {routineSlots} espacios. Consigue más con tus Vortx Points.
+          </p>
+          <Link to="/tienda" className="btn-primary mt-3 w-full">
+            Conseguir más espacios
+          </Link>
+        </div>
+      ) : (
+        <div>
+          <Link to="/rutinas/nueva" className="btn-primary w-full">
+            + Nueva rutina
+          </Link>
+          <p className="mt-1.5 text-center text-xs text-slate-500">
+            {customCount} de {routineSlots} espacios usados
+          </p>
+        </div>
+      )}
 
       <div className="space-y-3">
         {routines.map((routine) => {

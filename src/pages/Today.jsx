@@ -2,17 +2,18 @@ import { Link } from 'react-router-dom'
 import { useCatalog } from '../hooks/useCatalog'
 import { useLogs } from '../hooks/useLogs'
 import { useAuth } from '../context/AuthContext.jsx'
-import { CheckIcon, RestIcon, PlayIcon, FlameIcon } from '../components/icons.jsx'
+import { CheckIcon, RestIcon, PlayIcon, FlameIcon, CoinIcon } from '../components/icons.jsx'
 import { WEEKDAYS } from '../data/seedData'
 import { sessionForDay, metaFor } from '../lib/sessions'
 import { computeStreak } from '../lib/streak'
+import { computeBalance } from '../lib/points'
 import { toISODate, weekdayKey, weekDates, formatLong } from '../lib/dates'
 import Spinner from '../components/Spinner.jsx'
 import WeightReminder from '../components/WeightReminder.jsx'
 
 export default function Today() {
   const { user } = useAuth()
-  const { exercises, activeRoutines, loading } = useCatalog()
+  const { exercises, activeRoutines, pointsSpent, loading } = useCatalog()
   const { logs, loading: logsLoading } = useLogs()
 
   if (loading || logsLoading) return <Spinner />
@@ -32,6 +33,8 @@ export default function Today() {
   const trainedThisWeek = logs.filter((l) => week.includes(l.date) && l.trained).length
 
   const { current: streak, best: bestStreak } = computeStreak(logs, activeRoutines)
+  const trainedCount = logs.filter((l) => l.trained).length
+  const points = computeBalance(trainedCount, bestStreak, pointsSpent)
 
   const firstName = (user?.displayName ?? '').split(' ')[0] || 'atleta'
   const hasActive = activeRoutines.length > 0
@@ -105,21 +108,32 @@ export default function Today() {
         </div>
       </div>
 
-      {/* Streak */}
-      <div className="card flex items-center gap-4 overflow-hidden p-5">
-        <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border ${streak > 0 ? 'border-neon-amber/50 text-neon-amber shadow-[0_0_18px_rgba(255,176,32,0.3)]' : 'border-slate-500/30 text-slate-500'}`}>
-          <FlameIcon active={streak > 0} />
+      {/* Streak + points */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="card flex items-center gap-4 overflow-hidden p-5">
+          <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border ${streak > 0 ? 'border-neon-amber/50 text-neon-amber shadow-[0_0_18px_rgba(255,176,32,0.3)]' : 'border-slate-500/30 text-slate-500'}`}>
+            <FlameIcon active={streak > 0} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="label">Racha actual</p>
+            <p className={`font-display text-3xl font-extrabold ${streak > 0 ? 'text-neon-amber' : 'text-slate-400'}`}>
+              {streak} <span className="text-base font-semibold text-slate-500">día{streak === 1 ? '' : 's'}</span>
+            </p>
+            <p className="truncate text-xs text-slate-500">
+              {streak === 0 ? 'Entrena hoy para empezar' : `Mejor: ${bestStreak} día${bestStreak === 1 ? '' : 's'}`}
+            </p>
+          </div>
         </div>
-        <div className="flex-1">
-          <p className="label">Racha actual</p>
-          <p className={`font-display text-3xl font-extrabold ${streak > 0 ? 'text-neon-amber' : 'text-slate-400'}`}>
-            {streak} <span className="text-base font-semibold text-slate-500">día{streak === 1 ? '' : 's'}</span>
-          </p>
-          <p className="text-xs text-slate-500">
-            {streak === 0
-              ? 'Entrena hoy para empezar tu racha'
-              : `Mejor racha: ${bestStreak} día${bestStreak === 1 ? '' : 's'}`}
-          </p>
+
+        <div className="card flex items-center gap-4 overflow-hidden p-5">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-brand-400/50 text-brand-300 shadow-neon">
+            <CoinIcon />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="label">Vortx Points</p>
+            <p className="font-display text-3xl font-extrabold text-brand-300 neon-text">{points}</p>
+            <p className="truncate text-xs text-slate-500">Gánalos entrenando</p>
+          </div>
         </div>
       </div>
 

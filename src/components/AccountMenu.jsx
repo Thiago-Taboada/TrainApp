@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { useCatalog } from '../hooks/useCatalog'
 import { useLogs } from '../hooks/useLogs'
 import { exportUserData } from '../lib/exportData'
+import { CoinIcon } from './icons.jsx'
 
 export default function AccountMenu() {
   const { user, isAdmin, signOut } = useAuth()
@@ -93,6 +94,7 @@ export default function AccountMenu() {
           {/* Items */}
           <div className="p-1.5">
             <MenuItem onClick={() => go('/cuenta')} icon={<UserIcon />}>Mi cuenta</MenuItem>
+            <MenuItem onClick={() => go('/tienda')} icon={<CoinIcon className="h-5 w-5" />}>Tienda</MenuItem>
             <MenuItem onClick={() => go('/rutinas')} icon={<ListIcon />}>Rutinas</MenuItem>
             <MenuItem onClick={handleExport} icon={<DownloadIcon />}>Exportar mis datos</MenuItem>
             {isAdmin && (

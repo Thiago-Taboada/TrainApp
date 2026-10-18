@@ -12,6 +12,8 @@ const NAV = [
 // Labels for routes that aren't in the main nav (shown in the header subtitle).
 const EXTRA_LABELS = [
   { to: '/cuenta', label: 'Mi cuenta' },
+  { to: '/tienda', label: 'Tienda' },
+  { to: '/admin', label: 'Administración' },
   { to: '/sesion', label: 'Registro' },
   { to: '/entrenar', label: 'Entrenamiento' },
 ]
