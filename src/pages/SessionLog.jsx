@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useCatalog } from '../hooks/useCatalog'
 import { useLogs } from '../hooks/useLogs'
-import { WEEKDAYS } from '../data/seedData'
 import { sessionForDay, metaFor } from '../lib/sessions'
 import { formatLong, fromISODate, toISODate } from '../lib/dates'
 import Spinner from '../components/Spinner.jsx'
@@ -10,16 +10,16 @@ import { StatusDot } from '../components/icons.jsx'
 
 // Session fatigue options (global feeling of the session).
 const FATIGUE = [
-  { value: 'fresh', tone: 'fresh', label: 'Súper bien' },
-  { value: 'ok', tone: 'ok', label: 'Cansado pero salió' },
-  { value: 'spent', tone: 'spent', label: 'Agotado' },
+  { value: 'fresh', tone: 'fresh', labelKey: 'sessionLog.fatigueFresh' },
+  { value: 'ok', tone: 'ok', labelKey: 'sessionLog.fatigueOk' },
+  { value: 'spent', tone: 'spent', labelKey: 'sessionLog.fatigueSpent' },
 ]
 
 // Per-set effort (replaces the old numeric RIR). Qualitative, easier to judge.
 const EFFORT = [
-  { value: 'max', tone: 'spent', label: 'Al límite', hint: 'Casi al fallo (0-2 en reserva)' },
-  { value: 'hard', tone: 'ok', label: 'Exigente', hint: 'Costó, con margen (3-5 en reserva)' },
-  { value: 'easy', tone: 'fresh', label: 'Cómodo', hint: 'Con bastante margen (+5)' },
+  { value: 'max', tone: 'spent', labelKey: 'sessionLog.effortMax', hintKey: 'sessionLog.effortMaxHint' },
+  { value: 'hard', tone: 'ok', labelKey: 'sessionLog.effortHard', hintKey: 'sessionLog.effortHardHint' },
+  { value: 'easy', tone: 'fresh', labelKey: 'sessionLog.effortEasy', hintKey: 'sessionLog.effortEasyHint' },
 ]
 
 function emptySet() {
@@ -45,6 +45,7 @@ function buildEntries(day) {
 }
 
 export default function SessionLog() {
+  const { t } = useTranslation()
   const { weekday } = useParams()
   const [params] = useSearchParams()
   const navigate = useNavigate()
@@ -127,14 +128,13 @@ export default function SessionLog() {
   if (!day) {
     return (
       <div className="card p-8 text-center">
-        <p className="text-slate-500">Día no encontrado.</p>
-        <Link to="/cronograma" className="btn-primary mt-4">Volver al cronograma</Link>
+        <p className="text-slate-500">{t('sessionLog.dayNotFound')}</p>
+        <Link to="/cronograma" className="btn-primary mt-4">{t('sessionLog.backToSchedule')}</Link>
       </div>
     )
   }
 
   const meta = metaFor(day.sessionType)
-  const wd = WEEKDAYS.find((w) => w.key === weekday)
   const isRest = day.sessionType === 'rest' || day.blocks.length === 0
 
   function updateSet(entryIdx, setIdx, field, value) {
@@ -208,7 +208,7 @@ export default function SessionLog() {
       navigate('/cronograma')
     } catch (err) {
       console.error(err)
-      alert('No se pudo guardar: ' + (err?.message ?? 'error desconocido'))
+      alert(t('sessionLog.saveError') + (err?.message ?? t('sessionLog.unknownError')))
     } finally {
       setSaving(false)
     }
@@ -216,7 +216,7 @@ export default function SessionLog() {
 
   async function handleDelete() {
     if (!existing) return
-    if (!confirm('¿Eliminar el registro de este día?')) return
+    if (!confirm(t('sessionLog.confirmDelete'))) return
     await deleteLog(existing.id)
     clearDraft(draftKey)
     navigate('/cronograma')
@@ -228,12 +228,12 @@ export default function SessionLog() {
         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
-        Cronograma
+        {t('sessionLog.back')}
       </Link>
 
       <div className="card overflow-hidden">
         <div className={`${meta.color} px-5 py-2 text-xs font-bold uppercase tracking-widest text-ink-950`}>
-          {wd?.label} · {meta.label}
+          {t('weekdays.' + weekday)} · {t('sessionTypes.' + day.sessionType)}
         </div>
         <div className="p-5">
           <h1 className="text-xl font-bold">{day.label}</h1>
@@ -245,8 +245,8 @@ export default function SessionLog() {
       {/* Trained toggle */}
       <div className="card flex items-center justify-between p-4">
         <div>
-          <p className="font-semibold">¿Entrenaste este día?</p>
-          <p className="text-sm text-slate-500">Marca si completaste la sesión.</p>
+          <p className="font-semibold">{t('sessionLog.trainedQuestion')}</p>
+          <p className="text-sm text-slate-500">{t('sessionLog.trainedHint')}</p>
         </div>
         <button
           onClick={() => setTrained((t) => !t)}
@@ -261,19 +261,19 @@ export default function SessionLog() {
           {/* Duration + fatigue */}
           <div className="card space-y-4 p-5">
             <div>
-              <label className="label mb-1.5">Duración total (minutos)</label>
+              <label className="label mb-1.5">{t('sessionLog.durationLabel')}</label>
               <input
                 type="text"
                 inputMode="numeric"
                 value={duration}
                 onChange={(e) => setDuration(e.target.value.replace(/\D/g, '').slice(0, 3))}
                 onKeyDown={blurOnEnter}
-                placeholder="Ej. 45"
+                placeholder={t('sessionLog.durationPlaceholder')}
                 className="input"
               />
             </div>
             <div>
-              <label className="label mb-1.5">¿Cómo terminaste?</label>
+              <label className="label mb-1.5">{t('sessionLog.howEnded')}</label>
               <div className="grid grid-cols-3 gap-2">
                 {FATIGUE.map((f) => (
                   <button
@@ -286,7 +286,7 @@ export default function SessionLog() {
                     }`}
                   >
                     <StatusDot tone={f.tone} className="mb-0.5" />
-                    {f.label}
+                    {t(f.labelKey)}
                   </button>
                 ))}
               </div>
@@ -297,7 +297,7 @@ export default function SessionLog() {
           {!isRest && (
             <div className="space-y-4">
               <h2 className="text-sm font-bold uppercase tracking-wide text-slate-400">
-                Ejercicios ({entries.length})
+                {t('sessionLog.exercises', { count: entries.length })}
               </h2>
               {entries.map((entry, ei) => (
                 <ExerciseEntry
@@ -315,12 +315,12 @@ export default function SessionLog() {
 
           {/* Notes */}
           <div className="card p-5">
-            <label className="label mb-1.5">Notas</label>
+            <label className="label mb-1.5">{t('sessionLog.notes')}</label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
-              placeholder="¿Dolor de cadera? ¿Subiste peso? ¿Cómo te sentiste?"
+              placeholder={t('sessionLog.notesPlaceholder')}
               className="input resize-none"
             />
           </div>
@@ -330,11 +330,11 @@ export default function SessionLog() {
       {/* Actions */}
       <div className="sticky bottom-20 z-10 flex gap-3 md:bottom-4">
         <button onClick={handleSave} disabled={saving} className="btn-primary flex-1 shadow-lg">
-          {saving ? 'Guardando…' : existing ? 'Actualizar' : 'Guardar sesión'}
+          {saving ? t('sessionLog.saving') : existing ? t('sessionLog.update') : t('sessionLog.saveSession')}
         </button>
         {existing && (
           <button onClick={handleDelete} className="btn border border-neon-red/50 bg-neon-red/10 text-neon-red hover:bg-neon-red/20">
-            Eliminar
+            {t('sessionLog.delete')}
           </button>
         )}
       </div>
@@ -345,6 +345,7 @@ export default function SessionLog() {
 // Renders one exercise with its set rows, adapted to the exercise's tracking
 // type: reps (reps + optional weight), time (seconds), or check (done toggle).
 function ExerciseEntry({ entry, exercise, block, onUpdateSet, onAddSet, onRemoveSet }) {
+  const { t } = useTranslation()
   const tracking = exercise?.tracking ?? 'reps'
 
   return (
@@ -352,13 +353,13 @@ function ExerciseEntry({ entry, exercise, block, onUpdateSet, onAddSet, onRemove
       <div className="mb-3 flex items-start justify-between gap-2">
         <div>
           <Link to={`/biblioteca/${entry.exerciseId}`} className="font-semibold text-slate-200 hover:text-brand-300">
-            {exercise?.name ?? '[Ejercicio eliminado]'}
+            {exercise?.name ?? t('sessionLog.deletedExercise')}
           </Link>
           {block && (
             <p className="text-xs text-slate-400">
-              Objetivo: {block.sets}×{block.repsText}
-              {block.perSide ? ' /lado' : ''}
-              {block.restText && block.restText !== '—' ? ` · desc. ${block.restText}` : ''}
+              {t('sessionLog.target')}: {block.sets}×{block.repsText}
+              {block.perSide ? ' ' + t('sessionLog.perSide') : ''}
+              {block.restText && block.restText !== '—' ? ` · ${t('sessionLog.rest')} ${block.restText}` : ''}
             </p>
           )}
         </div>
@@ -369,18 +370,18 @@ function ExerciseEntry({ entry, exercise, block, onUpdateSet, onAddSet, onRemove
         {tracking === 'reps' && (
           <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">
             <span className="w-5 shrink-0">#</span>
-            <span className="w-0 flex-1 text-center">Reps</span>
-            <span className="w-0 flex-1 text-center">Peso kg</span>
-            <span className="shrink-0 text-center" style={{ width: '7.75rem' }}>Esfuerzo</span>
-            <span className="w-8 shrink-0 text-center">Fallo</span>
+            <span className="w-0 flex-1 text-center">{t('sessionLog.reps')}</span>
+            <span className="w-0 flex-1 text-center">{t('sessionLog.weightKg')}</span>
+            <span className="shrink-0 text-center" style={{ width: '7.75rem' }}>{t('sessionLog.effort')}</span>
+            <span className="w-8 shrink-0 text-center">{t('sessionLog.failure')}</span>
             <span className="w-7 shrink-0" />
           </div>
         )}
         {tracking === 'time' && (
           <div className="grid grid-cols-[28px_1fr_auto] items-center gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">
             <span>#</span>
-            <span>Tiempo (s)</span>
-            <span className="text-center">Quitar</span>
+            <span>{t('sessionLog.time')}</span>
+            <span className="text-center">{t('sessionLog.remove')}</span>
           </div>
         )}
 
@@ -398,29 +399,30 @@ function ExerciseEntry({ entry, exercise, block, onUpdateSet, onAddSet, onRemove
 
       {tracking === 'reps' && (
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-slate-500">
-          <span className="font-semibold uppercase tracking-wide">Esfuerzo:</span>
+          <span className="font-semibold uppercase tracking-wide">{t('sessionLog.effortLabel')}</span>
           {EFFORT.map((opt) => (
             <span key={opt.value} className="inline-flex items-center gap-1">
               <StatusDot tone={opt.tone} className="!h-2.5 !w-2.5" />
-              {opt.label}
+              {t(opt.labelKey)}
             </span>
           ))}
         </div>
       )}
 
       <button onClick={onAddSet} className="mt-3 text-xs font-semibold text-brand-400 hover:text-brand-300">
-        + Añadir serie
+        {t('sessionLog.addSet')}
       </button>
     </div>
   )
 }
 
 function SetRow({ index, set, tracking, onUpdate, onRemove }) {
+  const { t } = useTranslation()
   const removeBtn = (
     <button
       onClick={onRemove}
       className="flex h-8 w-7 items-center justify-center rounded-lg text-slate-500 hover:bg-ink-700 hover:text-neon-red"
-      title="Quitar serie"
+      title={t('sessionLog.removeSet')}
     >
       ×
     </button>
@@ -438,7 +440,7 @@ function SetRow({ index, set, tracking, onUpdate, onRemove }) {
               : 'border-slate-500/25 text-slate-400 hover:border-brand-400/40'
           }`}
         >
-          {set.done ? '✓ Hecho' : 'Marcar como hecho'}
+          {set.done ? t('sessionLog.done') : t('sessionLog.markDone')}
         </button>
         {removeBtn}
       </div>
@@ -473,7 +475,7 @@ function SetRow({ index, set, tracking, onUpdate, onRemove }) {
         value={set.reps}
         onChange={(e) => onUpdate('reps', e.target.value)}
         onKeyDown={blurOnEnter}
-        placeholder="reps"
+        placeholder={t('sessionLog.repsPlaceholder')}
         className="input w-0 flex-1 px-2 py-1.5 text-center"
       />
       <input
@@ -483,7 +485,7 @@ function SetRow({ index, set, tracking, onUpdate, onRemove }) {
         onChange={(e) => onUpdate('weightKg', e.target.value)}
         onKeyDown={blurOnEnter}
         placeholder="kg"
-        title="Peso extra (opcional). Vacío = peso corporal."
+        title={t('sessionLog.weightTitle')}
         className="input w-0 flex-1 px-2 py-1.5 text-center"
       />
       {/* Effort selector */}
@@ -494,7 +496,7 @@ function SetRow({ index, set, tracking, onUpdate, onRemove }) {
             <button
               key={opt.value}
               onClick={() => onUpdate('effort', active ? '' : opt.value)}
-              title={`${opt.label} — ${opt.hint}`}
+              title={`${t(opt.labelKey)} — ${t(opt.hintKey)}`}
               className={`flex h-8 w-8 items-center justify-center rounded-lg border transition ${
                 active
                   ? 'border-current bg-ink-700'
@@ -509,7 +511,7 @@ function SetRow({ index, set, tracking, onUpdate, onRemove }) {
       {/* Reached failure */}
       <button
         onClick={() => onUpdate('toFailure', !set.toFailure)}
-        title="Llegué al fallo (no pude hacer ni una repetición más)"
+        title={t('sessionLog.failureTitle')}
         className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold transition ${
           set.toFailure ? 'bg-neon-red text-white shadow-neon-pink' : 'bg-ink-700 text-slate-400'
         }`}

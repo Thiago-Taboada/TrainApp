@@ -14,17 +14,18 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { useTranslation } from 'react-i18next'
 import { useCatalog } from '../hooks/useCatalog'
 import { useLogs } from '../hooks/useLogs'
 import { WEEKDAYS } from '../data/seedData'
 import { sessionForDay } from '../lib/sessions'
-import { addDays, fromISODate, startOfWeek, toISODate, weekId } from '../lib/dates'
+import { addDays, fromISODate, startOfWeek, toISODate, weekId, formatShort } from '../lib/dates'
 import { themeAccent } from '../lib/themes'
 import Spinner from '../components/Spinner.jsx'
 import { ChartIcon } from '../components/icons.jsx'
 
 const FATIGUE_SCORE = { fresh: 1, ok: 2, spent: 3 }
-const FATIGUE_LABEL = { 1: 'Súper bien', 2: 'Cansado', 3: 'Agotado' }
+const FATIGUE_LABEL_KEY = { 1: 'analysis.fatigueFresh', 2: 'analysis.fatigueOk', 3: 'analysis.fatigueSpent' }
 
 // Shared dark tooltip styling for all Recharts tooltips.
 const TOOLTIP = {
@@ -41,6 +42,7 @@ const TOOLTIP = {
 }
 
 export default function Analysis() {
+  const { t } = useTranslation()
   const { exercises, activeRoutines, activeTheme, loading } = useCatalog()
   const { logs, weights, loading: logsLoading } = useLogs()
   const accent = themeAccent(activeTheme)
@@ -69,9 +71,9 @@ export default function Analysis() {
         <Header />
         <div className="card p-10 text-center">
           <ChartIcon className="mx-auto h-12 w-12 text-brand-400/80" />
-          <p className="mt-3 font-semibold text-slate-200">Aún no hay datos para analizar</p>
+          <p className="mt-3 font-semibold text-slate-200">{t('analysis.noDataTitle')}</p>
           <p className="mt-1 text-sm text-slate-400">
-            Registra algunas sesiones y aquí verás tu constancia, evolución y nivel de esfuerzo.
+            {t('analysis.noDataHint')}
           </p>
         </div>
       </div>
@@ -113,10 +115,11 @@ export default function Analysis() {
 }
 
 function Header() {
+  const { t } = useTranslation()
   return (
     <div>
-      <h1 className="neon-title text-2xl text-brand-300">Análisis</h1>
-      <p className="text-sm text-slate-500">Tu progreso en constancia, cargas y esfuerzo.</p>
+      <h1 className="neon-title text-2xl text-brand-300">{t('analysis.title')}</h1>
+      <p className="text-sm text-slate-500">{t('analysis.subtitle')}</p>
     </div>
   )
 }
@@ -133,6 +136,7 @@ function Section({ title, hint, children }) {
 
 // 0. Body weight over time + weekly sessions (to relate weight to training load)
 function BodyWeight({ weights, logs, accent }) {
+  const { t } = useTranslation()
   const sorted = useMemo(
     () => [...weights].sort((a, b) => (a.weekId > b.weekId ? 1 : -1)),
     [weights],
@@ -149,7 +153,7 @@ function BodyWeight({ weights, logs, accent }) {
   }, [logs])
 
   const data = sorted.map((w) => ({
-    label: fromISODate(w.date).toLocaleDateString('es', { day: 'numeric', month: 'short' }),
+    label: formatShort(fromISODate(w.date)),
     peso: w.weightKg,
     sesiones: sessionsByWeek[w.weekId] ?? 0,
   }))
@@ -161,21 +165,21 @@ function BodyWeight({ weights, logs, accent }) {
 
   if (weights.length === 0) {
     return (
-      <Section title="Peso corporal" hint="Registra tu peso cada semana desde el inicio.">
+      <Section title={t('analysis.bodyWeight')} hint={t('analysis.bodyWeightHintStart')}>
         <p className="py-6 text-center text-sm text-slate-400">
-          Aún no registras tu peso. El recordatorio aparece en Inicio cada semana.
+          {t('analysis.bodyWeightNone')}
         </p>
       </Section>
     )
   }
 
   return (
-    <Section title="Peso corporal" hint="Evolución semanal. Las barras muestran las sesiones de esa semana.">
+    <Section title={t('analysis.bodyWeight')} hint={t('analysis.bodyWeightHint')}>
       <div className="mb-4 flex flex-wrap gap-4">
-        <Metric label="Actual" value={latest != null ? `${latest} kg` : '—'} tone="brand" />
+        <Metric label={t('analysis.current')} value={latest != null ? `${latest} kg` : '—'} tone="brand" />
         {delta != null && (
           <Metric
-            label="Cambio total"
+            label={t('analysis.totalChange')}
             value={`${delta > 0 ? '+' : ''}${delta} kg`}
             tone={delta > 0 ? 'pink' : 'brand'}
           />
@@ -188,8 +192,8 @@ function BodyWeight({ weights, logs, accent }) {
           <YAxis yAxisId="w" tick={{ fontSize: 11, fill: '#64748b' }} stroke="#2a3761" domain={['dataMin - 1', 'dataMax + 1']} />
           <YAxis yAxisId="s" orientation="right" allowDecimals={false} tick={{ fontSize: 11, fill: '#334155' }} stroke="#1c2743" />
           <Tooltip {...TOOLTIP} cursor={{ fill: 'rgba(0,240,255,0.06)' }} />
-          <Bar yAxisId="s" dataKey="sesiones" name="Sesiones" fill="#1c2743" radius={[4, 4, 0, 0]} />
-          <Line yAxisId="w" type="monotone" dataKey="peso" name="Peso (kg)" stroke={accent} strokeWidth={2.5} dot={{ r: 3, fill: accent }} />
+          <Bar yAxisId="s" dataKey="sesiones" name={t('analysis.sessionsSeries')} fill="#1c2743" radius={[4, 4, 0, 0]} />
+          <Line yAxisId="w" type="monotone" dataKey="peso" name={t('analysis.weightKg')} stroke={accent} strokeWidth={2.5} dot={{ r: 3, fill: accent }} />
         </ComposedChart>
       </ResponsiveContainer>
     </Section>
@@ -208,6 +212,7 @@ function Metric({ label, value, tone }) {
 
 // 1. Constancy heatmap (last ~12 weeks, GitHub-style)
 function ConstancyHeatmap({ logs }) {
+  const { t } = useTranslation()
   const byDate = useMemo(() => {
     const m = {}
     for (const l of logs) m[l.date] = l
@@ -231,7 +236,7 @@ function ConstancyHeatmap({ logs }) {
   }
 
   return (
-    <Section title="Constancia" hint="Últimas 12 semanas. Cada cuadro es un día entrenado.">
+    <Section title={t('analysis.constancy')} hint={t('analysis.constancyHint')}>
       <div className="flex gap-1.5">
         {columns.map((col, i) => (
           <div key={i} className="flex flex-1 flex-col gap-1.5">
@@ -248,10 +253,10 @@ function ConstancyHeatmap({ logs }) {
         ))}
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
-        <Legend className="bg-brand-500" label="Fuerza" />
-        <Legend className="bg-neon-pink" label="Flexibilidad" />
-        <Legend className="bg-neon-amber" label="Movilidad" />
-        <Legend className="bg-ink-700" label="Sin entrenar" />
+        <Legend className="bg-brand-500" label={t('analysis.strength')} />
+        <Legend className="bg-neon-pink" label={t('analysis.flexibility')} />
+        <Legend className="bg-neon-amber" label={t('analysis.mobility')} />
+        <Legend className="bg-ink-700" label={t('analysis.notTrained')} />
       </div>
     </Section>
   )
@@ -268,6 +273,7 @@ function Legend({ className, label }) {
 
 // 2. Weekly adherence (sessions per week vs planned)
 function WeeklyAdherence({ logs, plannedPerWeek, accent }) {
+  const { t } = useTranslation()
   const planned = plannedPerWeek || 1
 
   const data = useMemo(() => {
@@ -281,14 +287,14 @@ function WeeklyAdherence({ logs, plannedPerWeek, accent }) {
     for (let i = 7; i >= 0; i--) {
       const ref = addDays(new Date(), -7 * i)
       const id = weekId(ref)
-      const label = startOfWeek(ref).toLocaleDateString('es', { day: 'numeric', month: 'short' })
+      const label = formatShort(startOfWeek(ref))
       out.push({ week: label, sesiones: map[id] ?? 0 })
     }
     return out
   }, [logs])
 
   return (
-    <Section title="Adherencia semanal" hint={`Sesiones completadas por semana. Objetivo del plan: ${planned}/semana.`}>
+    <Section title={t('analysis.weeklyAdherence')} hint={t('analysis.weeklyAdherenceHint', { planned })}>
       <ResponsiveContainer width="100%" height={200}>
         <BarChart data={data} margin={{ top: 10, right: 5, left: -20, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1c2743" />
@@ -308,6 +314,7 @@ function WeeklyAdherence({ logs, plannedPerWeek, accent }) {
 
 // 3. Exercise evolution (total reps & volume over time)
 function ExerciseEvolution({ logs, exercises, loggedExerciseIds, activeEx, onChange, accent }) {
+  const { t } = useTranslation()
   const data = useMemo(() => {
     const points = []
     for (const l of [...logs].sort((a, b) => a.date.localeCompare(b.date))) {
@@ -336,7 +343,7 @@ function ExerciseEvolution({ logs, exercises, loggedExerciseIds, activeEx, onCha
   const hasWeight = data.some((d) => d.volumen > 0)
 
   return (
-    <Section title="Evolución por ejercicio" hint="Total de repeticiones y volumen (reps × peso) por sesión.">
+    <Section title={t('analysis.exerciseEvolution')} hint={t('analysis.exerciseEvolutionHint')}>
       <select
         value={activeEx}
         onChange={(e) => onChange(e.target.value)}
@@ -350,7 +357,7 @@ function ExerciseEvolution({ logs, exercises, loggedExerciseIds, activeEx, onCha
       </select>
 
       {data.length === 0 ? (
-        <p className="py-8 text-center text-sm text-slate-400">Sin registros de este ejercicio.</p>
+        <p className="py-8 text-center text-sm text-slate-400">{t('analysis.noExerciseLogs')}</p>
       ) : (
         <ResponsiveContainer width="100%" height={220}>
           <LineChart data={data} margin={{ top: 10, right: 5, left: -20, bottom: 0 }}>
@@ -358,9 +365,9 @@ function ExerciseEvolution({ logs, exercises, loggedExerciseIds, activeEx, onCha
             <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#64748b' }} stroke="#2a3761" />
             <YAxis tick={{ fontSize: 11, fill: '#64748b' }} stroke="#2a3761" />
             <Tooltip {...TOOLTIP} />
-            <Line type="monotone" dataKey="reps" name="Reps totales" stroke={accent} strokeWidth={2.5} dot={{ r: 3, fill: accent }} />
+            <Line type="monotone" dataKey="reps" name={t('analysis.totalReps')} stroke={accent} strokeWidth={2.5} dot={{ r: 3, fill: accent }} />
             {hasWeight && (
-              <Line type="monotone" dataKey="volumen" name="Volumen (kg)" stroke="#ff2bd6" strokeWidth={2.5} dot={{ r: 3, fill: '#ff2bd6' }} />
+              <Line type="monotone" dataKey="volumen" name={t('analysis.volumeKg')} stroke="#ff2bd6" strokeWidth={2.5} dot={{ r: 3, fill: '#ff2bd6' }} />
             )}
           </LineChart>
         </ResponsiveContainer>
@@ -371,11 +378,7 @@ function ExerciseEvolution({ logs, exercises, loggedExerciseIds, activeEx, onCha
 
 // 4. Volume by muscle group (balance check)
 function MuscleVolume({ logs, exercises, accent }) {
-  const MUSCLE_LABEL = {
-    pull: 'Tracción', push: 'Empuje', legs: 'Piernas', shoulders: 'Hombros',
-    arms: 'Brazos', core: 'Core', glutes: 'Glúteos', hips: 'Caderas',
-    adductors: 'Aductores', hamstrings: 'Isquios', fullbody: 'Full body',
-  }
+  const { t } = useTranslation()
   const data = useMemo(() => {
     const map = {}
     for (const l of logs) {
@@ -388,21 +391,21 @@ function MuscleVolume({ logs, exercises, accent }) {
       }
     }
     return Object.entries(map)
-      .map(([g, series]) => ({ grupo: MUSCLE_LABEL[g] ?? g, series }))
+      .map(([g, series]) => ({ grupo: t('muscles.' + g), series }))
       .sort((a, b) => b.series - a.series)
-  }, [logs, exercises])
+  }, [logs, exercises, t])
 
   if (data.length === 0) return null
 
   return (
-    <Section title="Volumen por grupo muscular" hint="Series acumuladas por músculo. La serie es la unidad estándar de volumen; útil para detectar desequilibrios.">
+    <Section title={t('analysis.muscleVolume')} hint={t('analysis.muscleVolumeHint')}>
       <ResponsiveContainer width="100%" height={Math.max(180, data.length * 34)}>
         <BarChart data={data} layout="vertical" margin={{ top: 0, right: 10, left: 10, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#1c2743" />
           <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: '#64748b' }} stroke="#2a3761" />
           <YAxis type="category" dataKey="grupo" width={70} tick={{ fontSize: 11, fill: '#94a3b8' }} stroke="#2a3761" />
-          <Tooltip {...TOOLTIP} cursor={{ fill: 'rgba(0,240,255,0.06)' }} formatter={(v) => [`${v} series`, 'Volumen']} />
-          <Bar dataKey="series" name="Series" fill={accent} radius={[0, 6, 6, 0]} />
+          <Tooltip {...TOOLTIP} cursor={{ fill: 'rgba(0,240,255,0.06)' }} formatter={(v) => [t('analysis.seriesWithCount', { count: v }), t('analysis.volume')]} />
+          <Bar dataKey="series" name={t('analysis.series')} fill={accent} radius={[0, 6, 6, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </Section>
@@ -411,6 +414,7 @@ function MuscleVolume({ logs, exercises, accent }) {
 
 // 5. Effort vs fatigue over time
 function EffortFatigue({ logs }) {
+  const { t } = useTranslation()
   const data = useMemo(() => {
     return [...logs]
       .filter((l) => l.sessionFatigue)
@@ -433,7 +437,7 @@ function EffortFatigue({ logs }) {
   }, [logs])
 
   return (
-    <Section title="Esfuerzo y fatiga" hint="Tu nivel de agotamiento reportado por sesión. Vigila picos sostenidos de agotamiento.">
+    <Section title={t('analysis.effortFatigue')} hint={t('analysis.effortFatigueHint')}>
       <ResponsiveContainer width="100%" height={200}>
         <AreaChart data={data} margin={{ top: 10, right: 5, left: -20, bottom: 0 }}>
           <defs>
@@ -447,12 +451,12 @@ function EffortFatigue({ logs }) {
           <YAxis
             domain={[0, 3]}
             ticks={[1, 2, 3]}
-            tickFormatter={(v) => FATIGUE_LABEL[v] ?? ''}
+            tickFormatter={(v) => (FATIGUE_LABEL_KEY[v] ? t(FATIGUE_LABEL_KEY[v]) : '')}
             width={70}
             tick={{ fontSize: 10, fill: '#64748b' }}
             stroke="#2a3761"
           />
-          <Tooltip {...TOOLTIP} formatter={(v) => FATIGUE_LABEL[v] ?? v} />
+          <Tooltip {...TOOLTIP} formatter={(v) => (FATIGUE_LABEL_KEY[v] ? t(FATIGUE_LABEL_KEY[v]) : v)} />
           <Area type="monotone" dataKey="fatiga" stroke="#ff2bd6" strokeWidth={2.5} fill="url(#fat)" />
         </AreaChart>
       </ResponsiveContainer>
@@ -462,12 +466,13 @@ function EffortFatigue({ logs }) {
 
 // 6. Effort distribution: how many logged sets fell in each effort level.
 const EFFORT_META = [
-  { key: 'max', label: 'Al límite', color: '#ff3b5c' },
-  { key: 'hard', label: 'Exigente', color: '#ffb020' },
-  { key: 'easy', label: 'Cómodo', color: '#00f0ff' },
+  { key: 'max', labelKey: 'analysis.effortMax', color: '#ff3b5c' },
+  { key: 'hard', labelKey: 'analysis.effortHard', color: '#ffb020' },
+  { key: 'easy', labelKey: 'analysis.effortEasy', color: '#00f0ff' },
 ]
 
 function EffortDistribution({ logs }) {
+  const { t } = useTranslation()
   const { data, total } = useMemo(() => {
     const counts = { max: 0, hard: 0, easy: 0 }
     for (const l of logs)
@@ -475,30 +480,30 @@ function EffortDistribution({ logs }) {
         for (const s of e.sets ?? []) {
           if (s.effort && counts[s.effort] != null) counts[s.effort]++
         }
-    const t = counts.max + counts.hard + counts.easy
-    const d = EFFORT_META.map((m) => ({ nivel: m.label, series: counts[m.key], color: m.color }))
-    return { data: d, total: t }
-  }, [logs])
+    const tot = counts.max + counts.hard + counts.easy
+    const d = EFFORT_META.map((m) => ({ nivel: t(m.labelKey), series: counts[m.key], color: m.color }))
+    return { data: d, total: tot }
+  }, [logs, t])
 
   if (total === 0) {
     return (
-      <Section title="Distribución de esfuerzo" hint="Cuántas series registraste en cada nivel de esfuerzo.">
+      <Section title={t('analysis.effortDistribution')} hint={t('analysis.effortDistributionHintCount')}>
         <p className="py-6 text-center text-sm text-slate-400">
-          Marca el esfuerzo de tus series al registrar para ver esta distribución.
+          {t('analysis.effortDistributionHintEmpty')}
         </p>
       </Section>
     )
   }
 
   return (
-    <Section title="Distribución de esfuerzo" hint="Series por nivel de esfuerzo. Entrenar cerca del límite (sin pasarte) impulsa el progreso.">
+    <Section title={t('analysis.effortDistribution')} hint={t('analysis.effortDistributionHint')}>
       <ResponsiveContainer width="100%" height={Math.max(140, data.length * 44)}>
         <BarChart data={data} layout="vertical" margin={{ top: 0, right: 10, left: 10, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#1c2743" />
           <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: '#64748b' }} stroke="#2a3761" />
           <YAxis type="category" dataKey="nivel" width={70} tick={{ fontSize: 11, fill: '#94a3b8' }} stroke="#2a3761" />
-          <Tooltip {...TOOLTIP} cursor={{ fill: 'rgba(0,240,255,0.06)' }} formatter={(v) => [`${v} series`, 'Series']} />
-          <Bar dataKey="series" name="Series" radius={[0, 6, 6, 0]}>
+          <Tooltip {...TOOLTIP} cursor={{ fill: 'rgba(0,240,255,0.06)' }} formatter={(v) => [t('analysis.seriesWithCount', { count: v }), t('analysis.series')]} />
+          <Bar dataKey="series" name={t('analysis.series')} radius={[0, 6, 6, 0]}>
             {data.map((d, i) => (
               <Cell key={i} fill={d.color} />
             ))}

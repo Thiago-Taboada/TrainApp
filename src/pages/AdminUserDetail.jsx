@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useCatalog } from '../hooks/useCatalog'
 import { fetchUserContent, fetchUsers } from '../lib/adminData'
-import { CATEGORIES, SESSION_TYPE_META, WEEKDAYS } from '../data/seedData'
+import { SESSION_TYPE_META } from '../data/seedData'
 import Spinner from '../components/Spinner.jsx'
 
 export default function AdminUserDetail() {
+  const { t } = useTranslation()
   const { uid } = useParams()
   const { isAdmin, loading: authLoading } = useAuth()
   const { exercises: baseExercises } = useCatalog()
@@ -21,7 +23,7 @@ export default function AdminUserDetail() {
         setData(content)
         setProfile(users.find((u) => u.uid === uid) ?? null)
       })
-      .catch((err) => setError(err?.message ?? 'No se pudo cargar.'))
+      .catch((err) => setError(err?.message ?? t('admin.loadError')))
   }, [isAdmin, uid])
 
   // Resolve exercise names: base catalog + this user's custom exercises.
@@ -38,11 +40,11 @@ export default function AdminUserDetail() {
   return (
     <div className="space-y-5">
       <Link to="/admin/usuarios" className="inline-flex items-center gap-1 text-sm font-semibold text-slate-400 hover:text-brand-300">
-        <ChevronLeft /> Usuarios
+        <ChevronLeft /> {t('admin.users')}
       </Link>
 
       <div>
-        <h1 className="neon-title text-2xl text-brand-300">{profile?.displayName || 'Usuario'}</h1>
+        <h1 className="neon-title text-2xl text-brand-300">{profile?.displayName || t('admin.user')}</h1>
         <p className="text-sm text-slate-500">{profile?.email}</p>
       </div>
 
@@ -51,16 +53,16 @@ export default function AdminUserDetail() {
       )}
 
       {data === null && !error ? (
-        <Spinner label="Cargando contenido…" />
+        <Spinner label={t('admin.loadingContent')} />
       ) : (
         <>
           {/* Routines */}
           <section>
             <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-slate-400">
-              Rutinas propias ({data?.routines.length ?? 0})
+              {t('admin.ownRoutines', { count: data?.routines.length ?? 0 })}
             </h2>
             {data?.routines.length === 0 ? (
-              <p className="card p-4 text-sm text-slate-500">Este usuario no creó rutinas.</p>
+              <p className="card p-4 text-sm text-slate-500">{t('admin.noRoutines')}</p>
             ) : (
               <div className="space-y-3">
                 {data?.routines.map((r) => (
@@ -72,17 +74,16 @@ export default function AdminUserDetail() {
                         .filter((d) => d.sessionType !== 'rest' && (d.blocks?.length ?? 0) > 0)
                         .map((d) => {
                           const meta = SESSION_TYPE_META[d.sessionType] ?? SESSION_TYPE_META.rest
-                          const wd = WEEKDAYS.find((w) => w.key === d.weekday)
                           return (
                             <div key={d.weekday} className="rounded-lg border border-slate-500/15 bg-ink-900/60 p-3">
                               <div className="flex items-center gap-2">
                                 <span className={`h-2.5 w-2.5 rounded-full ${meta.color}`} />
-                                <p className="text-sm font-semibold text-slate-200">{wd?.label} · {d.label}</p>
+                                <p className="text-sm font-semibold text-slate-200">{t('weekdays.' + d.weekday)} · {d.label}</p>
                               </div>
                               <ul className="mt-1.5 space-y-1 text-sm text-slate-400">
                                 {(d.blocks ?? []).map((b, i) => (
                                   <li key={i} className="flex justify-between">
-                                    <span>{nameById.get(b.exerciseId) ?? '[Ejercicio eliminado]'}</span>
+                                    <span>{nameById.get(b.exerciseId) ?? t('admin.deletedExercise')}</span>
                                     <span className="font-mono text-slate-500">{b.sets}×{b.repsText}</span>
                                   </li>
                                 ))}
@@ -100,16 +101,16 @@ export default function AdminUserDetail() {
           {/* Exercises */}
           <section>
             <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-slate-400">
-              Ejercicios propios ({data?.exercises.length ?? 0})
+              {t('admin.ownExercisesCount', { count: data?.exercises.length ?? 0 })}
             </h2>
             {data?.exercises.length === 0 ? (
-              <p className="card p-4 text-sm text-slate-500">Este usuario no creó ejercicios.</p>
+              <p className="card p-4 text-sm text-slate-500">{t('admin.noOwnExercises')}</p>
             ) : (
               <div className="grid gap-2 sm:grid-cols-2">
                 {data?.exercises.map((ex) => (
                   <div key={ex.id} className="card p-3">
                     <p className="text-sm font-semibold text-slate-200">{ex.name}</p>
-                    <p className="text-xs text-slate-500">{CATEGORIES[ex.category] ?? ex.category}</p>
+                    <p className="text-xs text-slate-500">{t('categories.' + ex.category)}</p>
                     {ex.description && <p className="mt-1 line-clamp-2 text-xs text-slate-400">{ex.description}</p>}
                   </div>
                 ))}

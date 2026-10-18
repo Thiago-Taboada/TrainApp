@@ -1,8 +1,18 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext.jsx'
-import { checkPassword, isValidEmail, PASSWORD_RULES } from '../lib/validation'
+import { checkPassword, isValidEmail } from '../lib/validation'
+
+const PW_RULE_KEYS = {
+  length: 'login.pwLength',
+  upper: 'login.pwUpper',
+  lower: 'login.pwLower',
+  number: 'login.pwNumber',
+  special: 'login.pwSpecial',
+}
 
 export default function Login() {
+  const { t } = useTranslation()
   const { signInWithGoogle, signInWithEmail, registerWithEmail, error, clearError } = useAuth()
 
   const [mode, setMode] = useState('login') // 'login' | 'register'
@@ -50,28 +60,28 @@ export default function Login() {
         <div className="mb-6 flex flex-col items-center text-center">
           <h1 className="brand-font animate-flicker text-6xl text-brand-300">Vortx</h1>
           <p className="mt-2 font-mono text-xs uppercase tracking-widest text-neon-pink">
-            // Libera tu potencial
+            {t('login.tagline')}
           </p>
         </div>
 
         {/* Mode tabs */}
         <div className="mb-5 grid grid-cols-2 gap-1 rounded-xl border border-brand-500/20 bg-ink-900/60 p-1">
           <TabButton active={!isRegister} onClick={() => switchMode('login')}>
-            Entrar
+            {t('login.tabLogin')}
           </TabButton>
           <TabButton active={isRegister} onClick={() => switchMode('register')}>
-            Crear cuenta
+            {t('login.tabRegister')}
           </TabButton>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3" noValidate>
           {isRegister && (
             <div>
-              <label className="label mb-1.5">Nombre</label>
+              <label className="label mb-1.5">{t('login.name')}</label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Tu nombre"
+                placeholder={t('login.namePlaceholder')}
                 className="input"
                 autoComplete="name"
               />
@@ -79,7 +89,7 @@ export default function Login() {
           )}
 
           <div>
-            <label className="label mb-1.5">Correo</label>
+            <label className="label mb-1.5">{t('login.email')}</label>
             <input
               type="email"
               value={email}
@@ -89,12 +99,12 @@ export default function Login() {
               autoComplete="email"
             />
             {touched && !emailOk && (
-              <p className="mt-1 text-xs text-neon-red">Ingresa un correo válido.</p>
+              <p className="mt-1 text-xs text-neon-red">{t('login.emailInvalid')}</p>
             )}
           </div>
 
           <div>
-            <label className="label mb-1.5">Contraseña</label>
+            <label className="label mb-1.5">{t('login.password')}</label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
@@ -108,7 +118,7 @@ export default function Login() {
                 type="button"
                 onClick={() => setShowPassword((s) => !s)}
                 className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-slate-500 hover:text-brand-300"
-                title={showPassword ? 'Ocultar' : 'Mostrar'}
+                title={showPassword ? t('login.hide') : t('login.show')}
               >
                 {showPassword ? <EyeOffIcon /> : <EyeIcon />}
               </button>
@@ -123,7 +133,7 @@ export default function Login() {
                     className={`flex items-center gap-1.5 text-xs ${r.ok ? 'text-brand-300' : 'text-slate-500'}`}
                   >
                     <span className={`inline-block h-1.5 w-1.5 rounded-full ${r.ok ? 'bg-brand-400 shadow-[0_0_6px_rgba(0,240,255,0.8)]' : 'bg-slate-600'}`} />
-                    {r.label}
+                    {t(PW_RULE_KEYS[r.key])}
                   </li>
                 ))}
               </ul>
@@ -137,14 +147,14 @@ export default function Login() {
           )}
 
           <button type="submit" disabled={submitting} className="btn-primary w-full">
-            {submitting ? 'Procesando…' : isRegister ? 'Crear cuenta' : 'Entrar'}
+            {submitting ? t('login.processing') : isRegister ? t('login.createAccount') : t('login.enter')}
           </button>
         </form>
 
         {/* Divider */}
         <div className="my-5 flex items-center gap-3">
           <span className="h-px flex-1 bg-brand-500/20" />
-          <span className="font-mono text-[10px] uppercase tracking-widest text-slate-500">o</span>
+          <span className="font-mono text-[10px] uppercase tracking-widest text-slate-500">{t('login.or')}</span>
           <span className="h-px flex-1 bg-brand-500/20" />
         </div>
 
@@ -153,11 +163,11 @@ export default function Login() {
           className="btn w-full border border-brand-400/50 bg-ink-900/80 text-slate-100 hover:bg-ink-800 hover:shadow-neon"
         >
           <GoogleIcon />
-          Continuar con Google
+          {t('login.continueGoogle')}
         </button>
 
         <p className="mt-6 text-center font-mono text-[11px] uppercase tracking-widest text-slate-500">
-          datos cifrados en tu cuenta
+          {t('login.dataEncrypted')}
         </p>
       </div>
     </div>

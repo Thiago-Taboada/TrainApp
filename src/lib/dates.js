@@ -1,5 +1,13 @@
 // Lightweight date helpers (no external deps). All week math is Monday-based.
 
+import i18n from '../i18n'
+
+// Maps the i18n language code to a BCP-47 locale for Intl date formatting.
+function currentLocale() {
+  const lang = (i18n.language || 'es').split('-')[0]
+  return { es: 'es-ES', en: 'en-US', pt: 'pt-BR' }[lang] ?? 'es-ES'
+}
+
 export const WEEKDAY_KEYS = [
   'monday',
   'tuesday',
@@ -55,7 +63,7 @@ export function weekDates(reference = new Date()) {
 
 // e.g. "lun 12 oct"
 export function formatShort(date) {
-  return new Date(date).toLocaleDateString('es', {
+  return new Date(date).toLocaleDateString(currentLocale(), {
     weekday: 'short',
     day: 'numeric',
     month: 'short',
@@ -63,10 +71,19 @@ export function formatShort(date) {
 }
 
 export function formatLong(date) {
-  return new Date(date).toLocaleDateString('es', {
+  return new Date(date).toLocaleDateString(currentLocale(), {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
+  })
+}
+
+// e.g. "12 oct 2026" — day, short month, year (no weekday).
+export function formatMedium(date) {
+  return new Date(date).toLocaleDateString(currentLocale(), {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
   })
 }
 

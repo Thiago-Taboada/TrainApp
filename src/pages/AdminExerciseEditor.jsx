@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useCatalog } from '../hooks/useCatalog'
 import { CATEGORIES, MUSCLE_GROUPS, TRACKING_TYPES } from '../data/seedData'
@@ -16,6 +17,7 @@ const EMPTY = {
 }
 
 export default function AdminExerciseEditor() {
+  const { t } = useTranslation()
   const { exerciseId } = useParams()
   const navigate = useNavigate()
   const { isAdmin, loading: authLoading } = useAuth()
@@ -60,7 +62,7 @@ export default function AdminExerciseEditor() {
 
   async function handleSave() {
     if (!form.name.trim()) {
-      alert('Ponle un nombre al ejercicio.')
+      alert(t('admin.needName'))
       return
     }
     setSaving(true)
@@ -77,14 +79,14 @@ export default function AdminExerciseEditor() {
       })
       navigate('/admin')
     } catch (err) {
-      alert('No se pudo guardar: ' + (err?.message ?? 'error'))
+      alert(t('admin.saveError') + (err?.message ?? t('admin.saveErrorFallback')))
     } finally {
       setSaving(false)
     }
   }
 
   async function handleDelete() {
-    if (!confirm('¿Eliminar este ejercicio base? Afecta a todos los usuarios.')) return
+    if (!confirm(t('admin.confirmDeleteBase'))) return
     await deleteBaseExercise(exerciseId)
     navigate('/admin')
   }
@@ -92,42 +94,42 @@ export default function AdminExerciseEditor() {
   return (
     <div className="space-y-5">
       <Link to="/admin" className="inline-flex items-center gap-1 text-sm font-semibold text-slate-400 hover:text-brand-300">
-        <ChevronLeft /> Administración
+        <ChevronLeft /> {t('admin.back')}
       </Link>
 
       <h1 className="neon-title text-2xl text-brand-300">
-        {editing ? 'Editar ejercicio base' : 'Nuevo ejercicio base'}
+        {editing ? t('admin.editBaseExercise') : t('admin.newBaseExerciseTitle')}
       </h1>
-      <p className="-mt-3 text-xs text-neon-amber">Los cambios afectan a todos los usuarios.</p>
+      <p className="-mt-3 text-xs text-neon-amber">{t('admin.affectsAll')}</p>
 
       <div className="card space-y-4 p-5">
         <div>
-          <label className="label mb-1.5">Nombre</label>
+          <label className="label mb-1.5">{t('admin.name')}</label>
           <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input" />
         </div>
 
         <div>
-          <label className="label mb-1.5">Categoría</label>
+          <label className="label mb-1.5">{t('admin.category')}</label>
           <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="input">
-            {Object.entries(CATEGORIES).map(([k, v]) => (
-              <option key={k} value={k}>{v}</option>
+            {Object.keys(CATEGORIES).map((k) => (
+              <option key={k} value={k}>{t('categories.' + k)}</option>
             ))}
           </select>
         </div>
 
         <div>
-          <label className="label mb-1.5">Cómo se registra</label>
+          <label className="label mb-1.5">{t('admin.howTracked')}</label>
           <select value={form.tracking} onChange={(e) => setForm({ ...form, tracking: e.target.value })} className="input">
-            {Object.entries(TRACKING_TYPES).map(([k, v]) => (
-              <option key={k} value={k}>{v}</option>
+            {Object.keys(TRACKING_TYPES).map((k) => (
+              <option key={k} value={k}>{t('tracking.' + k)}</option>
             ))}
           </select>
         </div>
 
         <div>
-          <label className="label mb-2">Grupos musculares</label>
+          <label className="label mb-2">{t('admin.muscleGroups')}</label>
           <div className="flex flex-wrap gap-2">
-            {Object.entries(MUSCLE_GROUPS).map(([k, v]) => (
+            {Object.keys(MUSCLE_GROUPS).map((k) => (
               <button
                 key={k}
                 type="button"
@@ -138,35 +140,35 @@ export default function AdminExerciseEditor() {
                     : 'border-slate-500/25 bg-ink-800/60 text-slate-400 hover:border-brand-400/40 hover:text-brand-200'
                 }`}
               >
-                {v}
+                {t('muscles.' + k)}
               </button>
             ))}
           </div>
         </div>
 
         <div>
-          <label className="label mb-1.5">Equipo (separado por comas)</label>
+          <label className="label mb-1.5">{t('admin.equipment')}</label>
           <input value={form.equipment} onChange={(e) => setForm({ ...form, equipment: e.target.value })} className="input" />
         </div>
 
         <div>
-          <label className="label mb-1.5">Descripción / guía</label>
+          <label className="label mb-1.5">{t('admin.description')}</label>
           <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} className="input resize-none" />
         </div>
 
         <div>
-          <label className="label mb-1.5">Notas clave (una por línea)</label>
+          <label className="label mb-1.5">{t('admin.cues')}</label>
           <textarea value={form.cues} onChange={(e) => setForm({ ...form, cues: e.target.value })} rows={3} className="input resize-none" />
         </div>
       </div>
 
       <div className="flex gap-3">
         <button onClick={handleSave} disabled={saving} className="btn-primary flex-1">
-          {saving ? 'Guardando…' : 'Guardar'}
+          {saving ? t('admin.saving') : t('admin.save')}
         </button>
         {editing && (
           <button onClick={handleDelete} className="btn border border-neon-red/50 bg-neon-red/10 text-neon-red hover:bg-neon-red/20">
-            Eliminar
+            {t('admin.deleteExercise')}
           </button>
         )}
       </div>

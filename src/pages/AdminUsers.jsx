@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext.jsx'
 import { fetchUsers } from '../lib/adminData'
 import Spinner from '../components/Spinner.jsx'
 
 export default function AdminUsers() {
+  const { t } = useTranslation()
   const { isAdmin, loading: authLoading } = useAuth()
   const [users, setUsers] = useState(null)
   const [error, setError] = useState('')
@@ -13,7 +15,7 @@ export default function AdminUsers() {
     if (!isAdmin) return
     fetchUsers()
       .then(setUsers)
-      .catch((err) => setError(err?.message ?? 'No se pudieron cargar los usuarios.'))
+      .catch((err) => setError(err?.message ?? t('admin.loadUsersError')))
   }, [isAdmin])
 
   if (authLoading) return <Spinner />
@@ -22,12 +24,12 @@ export default function AdminUsers() {
   return (
     <div className="space-y-5">
       <Link to="/admin" className="inline-flex items-center gap-1 text-sm font-semibold text-slate-400 hover:text-brand-300">
-        <ChevronLeft /> Administración
+        <ChevronLeft /> {t('admin.back')}
       </Link>
 
       <div>
-        <h1 className="neon-title text-2xl text-brand-300">Usuarios</h1>
-        <p className="text-sm text-slate-500">Rutinas y ejercicios que cada usuario crea (sin datos personales).</p>
+        <h1 className="neon-title text-2xl text-brand-300">{t('admin.users')}</h1>
+        <p className="text-sm text-slate-500">{t('admin.usersSubtitle')}</p>
       </div>
 
       {error && (
@@ -35,10 +37,10 @@ export default function AdminUsers() {
       )}
 
       {users === null && !error ? (
-        <Spinner label="Cargando usuarios…" />
+        <Spinner label={t('admin.loadingUsers')} />
       ) : (
         <>
-          <p className="text-xs font-medium text-slate-400">{users?.length ?? 0} usuarios</p>
+          <p className="text-xs font-medium text-slate-400">{t('admin.usersCount', { count: users?.length ?? 0 })}</p>
           <div className="space-y-2">
             {users?.map((u) => (
               <Link
@@ -54,10 +56,10 @@ export default function AdminUsers() {
                   </span>
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-slate-200">{u.displayName || 'Sin nombre'}</p>
+                  <p className="truncate text-sm font-semibold text-slate-200">{u.displayName || t('admin.noName')}</p>
                   <p className="truncate text-xs text-slate-500">{u.email}</p>
                 </div>
-                <span className="shrink-0 text-xs font-semibold text-brand-400">Ver</span>
+                <span className="shrink-0 text-xs font-semibold text-brand-400">{t('admin.view')}</span>
               </Link>
             ))}
           </div>

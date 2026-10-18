@@ -4,14 +4,17 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { useCatalog } from '../hooks/useCatalog'
 import { useLogs } from '../hooks/useLogs'
 import { exportUserData, parseImportFile } from '../lib/exportData'
-import { fromISODate } from '../lib/dates'
+import { fromISODate, formatMedium } from '../lib/dates'
+import { useTranslation } from 'react-i18next'
 import { computeStreak } from '../lib/streak'
 import { THEMES } from '../lib/themes'
+import { LANGUAGES } from '../i18n'
 import Spinner from '../components/Spinner.jsx'
 import { FlameIcon, CheckIcon } from '../components/icons.jsx'
 
 export default function Account() {
   const { user, signOut, providerLabel, isPasswordUser, updateDisplayName, deleteAccount, error, clearError } = useAuth()
+  const { t, i18n } = useTranslation()
   const { exercises, routines, activeRoutines, activeRoutineIds, loading, importCatalog, ownedThemes, activeTheme, setTheme } = useCatalog()
   const { logs, weights, loading: logsLoading, importLogsAndWeights } = useLogs()
   const navigate = useNavigate()
@@ -56,7 +59,7 @@ export default function Account() {
       const payload = await parseImportFile(file)
       setImportPreview(payload)
     } catch (err) {
-      setImportError(err?.message ?? 'No se pudo leer el archivo.')
+      setImportError(err?.message ?? t('account.readFileError'))
     }
   }
 
@@ -74,7 +77,7 @@ export default function Account() {
       setImportPreview(null)
       setImportDone(true)
     } catch (err) {
-      setImportError(err?.message ?? 'No se pudo importar.')
+      setImportError(err?.message ?? t('account.importError'))
     } finally {
       setImporting(false)
     }
@@ -123,7 +126,7 @@ export default function Account() {
 
   return (
     <div className="space-y-5">
-      <h1 className="neon-title text-2xl text-brand-300">Mi cuenta</h1>
+      <h1 className="neon-title text-2xl text-brand-300">{t('account.title')}</h1>
 
       {/* Identity */}
       <div className="card flex items-center gap-4 p-5">
@@ -140,24 +143,24 @@ export default function Account() {
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Tu nombre"
+                placeholder={t('account.namePlaceholder')}
                 className="input py-2"
                 autoFocus
               />
               <div className="flex gap-2">
                 <button onClick={saveName} disabled={savingName || !name.trim()} className="btn-primary px-3 py-1.5 text-xs">
-                  {savingName ? 'Guardando…' : 'Guardar'}
+                  {savingName ? t('account.saving') : t('account.save')}
                 </button>
                 <button onClick={() => setEditing(false)} className="btn-ghost px-3 py-1.5 text-xs">
-                  Cancelar
+                  {t('account.cancel')}
                 </button>
               </div>
             </div>
           ) : (
             <>
               <div className="flex items-center gap-2">
-                <p className="truncate text-lg font-bold text-slate-100">{user?.displayName || 'Atleta'}</p>
-                <button onClick={startEdit} title="Editar nombre" className="shrink-0 text-slate-500 hover:text-brand-300">
+                <p className="truncate text-lg font-bold text-slate-100">{user?.displayName || t('account.defaultAthlete')}</p>
+                <button onClick={startEdit} title={t('account.editName')} className="shrink-0 text-slate-500 hover:text-brand-300">
                   <PencilIcon />
                 </button>
               </div>
@@ -178,42 +181,42 @@ export default function Account() {
           <FlameIcon active={streak.current > 0} />
         </div>
         <div className="flex-1">
-          <p className="label">Racha actual</p>
+          <p className="label">{t('account.currentStreak')}</p>
           <p className={`font-display text-3xl font-extrabold ${streak.current > 0 ? 'text-neon-amber' : 'text-slate-400'}`}>
-            {streak.current} <span className="text-base font-semibold text-slate-500">día{streak.current === 1 ? '' : 's'}</span>
+            {streak.current} <span className="text-base font-semibold text-slate-500">{streak.current === 1 ? t('common.day') : t('common.days')}</span>
           </p>
           <p className="text-xs text-slate-500">
-            Mejor racha: {streak.best} día{streak.best === 1 ? '' : 's'}
+            {t('account.bestStreakDays', { count: streak.best })}
           </p>
         </div>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat label="Entrenamientos" value={stats.total} tone="brand" />
-        <Stat label="Minutos totales" value={stats.totalMinutes} tone="pink" />
-        <Stat label="Rutinas activas" value={activeRoutines.length} tone="brand" />
-        <Stat label="Ejercicios propios" value={exercises.filter((e) => e.isCustom).length} tone="pink" />
+        <Stat label={t('account.trainings')} value={stats.total} tone="brand" />
+        <Stat label={t('account.totalMinutes')} value={stats.totalMinutes} tone="pink" />
+        <Stat label={t('account.activeRoutines')} value={activeRoutines.length} tone="brand" />
+        <Stat label={t('account.ownExercises')} value={exercises.filter((e) => e.isCustom).length} tone="pink" />
       </div>
 
       {/* Theme selector (only themes you own) */}
       <div className="card p-5">
         <div className="flex items-center justify-between">
-          <h2 className="font-display font-bold uppercase tracking-wide text-slate-100">Tema</h2>
+          <h2 className="font-display font-bold uppercase tracking-wide text-slate-100">{t('account.theme')}</h2>
           <Link to="/tienda" className="text-xs font-semibold text-brand-400 hover:text-brand-300">
-            Más temas
+            {t('account.moreThemes')}
           </Link>
         </div>
         <div className="mt-3 flex flex-wrap gap-3">
-          {THEMES.filter((t) => ownedThemes.includes(t.id)).map((t) => {
-            const active = t.id === activeTheme
+          {THEMES.filter((th) => ownedThemes.includes(th.id)).map((th) => {
+            const active = th.id === activeTheme
             return (
               <button
-                key={t.id}
-                onClick={() => t.id !== activeTheme && setTheme(t.id)}
-                title={t.name}
+                key={th.id}
+                onClick={() => th.id !== activeTheme && setTheme(th.id)}
+                title={t('themes.' + th.id)}
                 className={`relative h-10 w-10 rounded-full transition ${active ? 'ring-2 ring-offset-2 ring-offset-ink-850' : 'opacity-80 hover:opacity-100'}`}
-                style={{ background: t.swatch, boxShadow: active ? `0 0 14px ${t.swatch}99` : 'none', '--tw-ring-color': t.swatch }}
+                style={{ background: th.swatch, boxShadow: active ? `0 0 14px ${th.swatch}99` : 'none', '--tw-ring-color': th.swatch }}
               >
                 {active && (
                   <span className="absolute inset-0 flex items-center justify-center text-ink-950">
@@ -226,19 +229,42 @@ export default function Account() {
         </div>
       </div>
 
+      {/* Language */}
+      <div className="card p-5">
+        <h2 className="mb-3 font-display font-bold uppercase tracking-wide text-slate-100">{t('account.language')}</h2>
+        <div className="flex flex-wrap gap-2">
+          {LANGUAGES.map((lng) => {
+            const active = i18n.language?.startsWith(lng.code)
+            return (
+              <button
+                key={lng.code}
+                onClick={() => i18n.changeLanguage(lng.code)}
+                className={`chip border px-3 py-1.5 ${
+                  active
+                    ? 'border-brand-400 bg-brand-500/15 text-brand-300'
+                    : 'border-slate-500/25 bg-ink-800/60 text-slate-400 hover:border-brand-400/40 hover:text-brand-200'
+                }`}
+              >
+                {lng.label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
       {/* Activity summary */}
       <div className="card p-5">
-        <h2 className="mb-3 font-display font-bold uppercase tracking-wide text-slate-100">Actividad</h2>
-        <Row label="Primer registro" value={stats.firstDate ?? '—'} />
-        <Row label="Último entrenamiento" value={stats.lastDate ?? '—'} />
-        <Row label="Promedio por sesión" value={stats.avgMinutes ? `${stats.avgMinutes} min` : '—'} last />
+        <h2 className="mb-3 font-display font-bold uppercase tracking-wide text-slate-100">{t('account.activity')}</h2>
+        <Row label={t('account.firstLog')} value={stats.firstDate ?? '—'} />
+        <Row label={t('account.lastWorkout')} value={stats.lastDate ?? '—'} />
+        <Row label={t('account.avgPerSession')} value={stats.avgMinutes ? `${stats.avgMinutes} min` : '—'} last />
       </div>
 
       {/* Actions */}
       <div className="card p-1.5">
-        <ActionRow onClick={handleExport} icon={<DownloadIcon />} label="Exportar mis datos" />
+        <ActionRow onClick={handleExport} icon={<DownloadIcon />} label={t('account.exportData')} />
         <div className="mx-3 border-t border-brand-500/15" />
-        <ActionRow onClick={() => fileInputRef.current?.click()} icon={<UploadIcon />} label="Restaurar backup" />
+        <ActionRow onClick={() => fileInputRef.current?.click()} icon={<UploadIcon />} label={t('account.restoreBackup')} />
       </div>
       <input
         ref={fileInputRef}
@@ -251,28 +277,26 @@ export default function Account() {
       {/* Import confirmation */}
       {importPreview && (
         <div className="card border-neon-red/40 p-5">
-          <h2 className="font-display font-bold uppercase tracking-wide text-neon-red">Restaurar backup</h2>
+          <h2 className="font-display font-bold uppercase tracking-wide text-neon-red">{t('account.restoreTitle')}</h2>
 
           <div className="mt-3 rounded-lg border border-neon-red/40 bg-neon-red/10 p-3 text-sm text-neon-red">
-            <p className="font-semibold">Esto reemplazará TODOS tus datos actuales.</p>
+            <p className="font-semibold">{t('account.restoreWarnTitle')}</p>
             <p className="mt-1 text-neon-red/90">
-              Tus registros de entrenamiento, pesos, rutinas y ejercicios propios se
-              borrarán por completo y se sustituirán por los del archivo. Esta acción
-              no se puede deshacer.
+              {t('account.restoreWarnBody')}
             </p>
           </div>
 
-          <p className="mt-3 text-sm text-slate-400">El backup contiene:</p>
+          <p className="mt-3 text-sm text-slate-400">{t('account.backupContains')}</p>
           <ul className="mt-2 space-y-1 text-sm text-slate-300">
-            <li>· {importPreview.logs.length} registros de entrenamiento</li>
-            <li>· {importPreview.weights.length} registros de peso</li>
-            <li>· {importPreview.customRoutines.length} rutinas propias</li>
-            <li>· {importPreview.customExercises.length} ejercicios propios</li>
+            <li>{t('account.backupLogs', { count: importPreview.logs.length })}</li>
+            <li>{t('account.backupWeights', { count: importPreview.weights.length })}</li>
+            <li>{t('account.backupRoutines', { count: importPreview.customRoutines.length })}</li>
+            <li>{t('account.backupExercises', { count: importPreview.customExercises.length })}</li>
           </ul>
           <p className="mt-3 text-xs text-neon-amber">
-            Consejo: exporta tus datos actuales antes de continuar, por si quieres volver atrás.
+            {t('account.backupTip')}
           </p>
-          <p className="mt-2 text-xs text-slate-500">No se importa nombre ni correo.</p>
+          <p className="mt-2 text-xs text-slate-500">{t('account.backupNoPII')}</p>
 
           {importError && (
             <p className="mt-3 rounded-lg border border-neon-red/40 bg-neon-red/10 px-3 py-2 text-sm text-neon-red">
@@ -286,9 +310,9 @@ export default function Account() {
               disabled={importing}
               className="btn flex-1 border border-neon-red/60 bg-neon-red/20 text-neon-red hover:bg-neon-red/30"
             >
-              {importing ? 'Restaurando…' : 'Sí, reemplazar todo'}
+              {importing ? t('account.restoring') : t('account.replaceAll')}
             </button>
-            <button onClick={cancelImport} className="btn-ghost flex-1">Cancelar</button>
+            <button onClick={cancelImport} className="btn-ghost flex-1">{t('account.cancel')}</button>
           </div>
         </div>
       )}
@@ -299,7 +323,7 @@ export default function Account() {
       )}
       {importDone && (
         <p className="rounded-lg border border-brand-400/40 bg-brand-500/10 px-3 py-2 text-sm text-brand-300">
-          Backup restaurado correctamente.
+          {t('account.backupRestored')}
         </p>
       )}
 
@@ -307,14 +331,14 @@ export default function Account() {
         onClick={signOut}
         className="btn w-full border border-slate-500/30 bg-ink-700/50 text-slate-300 hover:border-brand-400/40 hover:text-brand-200"
       >
-        <LogoutIcon /> Cerrar sesión
+        <LogoutIcon /> {t('account.signOut')}
       </button>
 
       {/* Danger zone */}
       <div className="card border-neon-red/30 p-5">
-        <h2 className="font-display font-bold uppercase tracking-wide text-neon-red">Zona de peligro</h2>
+        <h2 className="font-display font-bold uppercase tracking-wide text-neon-red">{t('account.dangerZone')}</h2>
         <p className="mt-1 text-sm text-slate-400">
-          Borrar tu cuenta elimina tu perfil y es permanente. Tus registros y rutinas dejarán de estar disponibles.
+          {t('account.deleteWarning')}
         </p>
 
         {error && (
@@ -328,16 +352,16 @@ export default function Account() {
             onClick={() => setConfirmDelete(true)}
             className="btn mt-4 w-full border border-neon-red/50 bg-neon-red/10 text-neon-red hover:bg-neon-red/20"
           >
-            <TrashIcon /> Borrar mi cuenta
+            <TrashIcon /> {t('account.deleteAccount')}
           </button>
         ) : (
           <div className="mt-4 space-y-3">
-            <p className="text-sm font-semibold text-slate-200">¿Seguro? Esta acción no se puede deshacer.</p>
+            <p className="text-sm font-semibold text-slate-200">{t('account.confirmDeleteQuestion')}</p>
 
             {/* Reauth prompt: only for email accounts when the session is stale */}
             {reauthNeeded && isPasswordUser && (
               <div>
-                <label className="label mb-1.5">Confirma tu contraseña para continuar</label>
+                <label className="label mb-1.5">{t('account.confirmPassword')}</label>
                 <input
                   type="password"
                   value={reauthPassword}
@@ -350,7 +374,7 @@ export default function Account() {
             )}
             {reauthNeeded && !isPasswordUser && (
               <p className="text-xs text-neon-amber">
-                Confirma en la ventana de Google para continuar.
+                {t('account.confirmGoogle')}
               </p>
             )}
 
@@ -360,10 +384,10 @@ export default function Account() {
                 disabled={deleting || (reauthNeeded && isPasswordUser && !reauthPassword)}
                 className="btn flex-1 border border-neon-red/60 bg-neon-red/20 text-neon-red hover:bg-neon-red/30"
               >
-                {deleting ? 'Borrando…' : reauthNeeded ? 'Confirmar y borrar' : 'Sí, borrar'}
+                {deleting ? t('account.deleting') : reauthNeeded ? t('account.confirmAndDelete') : t('account.yesDelete')}
               </button>
               <button onClick={cancelDelete} className="btn-ghost flex-1">
-                Cancelar
+                {t('account.cancel')}
               </button>
             </div>
           </div>
@@ -400,7 +424,7 @@ function computeStats(logs) {
 }
 
 function fmt(iso) {
-  return fromISODate(iso).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' })
+  return formatMedium(fromISODate(iso))
 }
 
 function Stat({ label, value, tone }) {

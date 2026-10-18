@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useCatalog } from '../hooks/useCatalog'
 import { useLogs } from '../hooks/useLogs'
 import { useAuth } from '../context/AuthContext.jsx'
@@ -13,6 +14,7 @@ import WeightReminder from '../components/WeightReminder.jsx'
 
 export default function Today() {
   const { user } = useAuth()
+  const { t } = useTranslation()
   const { exercises, activeRoutines, pointsSpent, loading } = useCatalog()
   const { logs, loading: logsLoading } = useLogs()
 
@@ -43,25 +45,25 @@ export default function Today() {
     <div className="space-y-5">
       <div>
         <p className="text-sm font-medium text-slate-400">{formatLong(today)}</p>
-        <h1 className="neon-title text-2xl text-brand-300">Hola, {firstName}</h1>
+        <h1 className="neon-title text-2xl text-brand-300">{t('today.hello', { name: firstName })}</h1>
       </div>
 
       <WeightReminder />
 
       {!hasActive && (
         <div className="card border-neon-amber/40 bg-neon-amber/10 p-4 text-sm text-neon-amber">
-          No tienes rutinas activas.{' '}
+          {t('today.noActiveRoutines')}{' '}
           <Link to="/rutinas" className="font-semibold underline">
-            Activa una rutina
+            {t('today.activateRoutine')}
           </Link>{' '}
-          para ver tu sesión de hoy.
+          {t('today.toSeeToday')}
         </div>
       )}
 
       {/* Today's session */}
       <div className="card overflow-hidden">
         <div className={`${meta.color} px-5 py-2 text-xs font-bold uppercase tracking-widest text-ink-950`}>
-          Sesión de hoy · {meta.label}
+          {t('today.todaySession')} · {t('sessionTypes.' + day.sessionType)}
         </div>
         <div className="p-5">
           <h2 className="font-display text-xl font-bold text-slate-100">{day.label}</h2>
@@ -82,27 +84,27 @@ export default function Today() {
                   )
                 })}
                 {day.blocks.length > 5 && (
-                  <p className="text-xs text-slate-400">+{day.blocks.length - 5} más…</p>
+                  <p className="text-xs text-slate-400">+{day.blocks.length - 5}…</p>
                 )}
               </div>
 
               <Link to={`/entrenar/${todayKey}`} className="btn-primary mt-5 w-full py-3 text-base">
-                <PlayIcon /> Empezar entrenamiento
+                <PlayIcon /> {t('today.startWorkout')}
               </Link>
               <Link to={`/sesion/${todayKey}`} className="btn-ghost mt-2 w-full">
-                {todayLog ? 'Editar registro de hoy' : 'Registrar entrenamiento'}
+                {todayLog ? t('today.editTodayLog') : t('today.registerWorkout')}
               </Link>
               {todayLog?.trained && (
                 <p className="mt-2 flex items-center justify-center gap-1.5 text-sm font-medium text-brand-300 neon-text">
                   <CheckIcon className="h-4 w-4" />
-                  Registrado · {todayLog.durationMinutes ?? 0} min
+                  {t('today.registered')} · {todayLog.durationMinutes ?? 0} min
                 </p>
               )}
             </>
           ) : (
             <p className="mt-4 flex items-center gap-2 rounded-xl border border-slate-500/15 bg-ink-900/60 px-4 py-3 text-sm text-slate-400">
               <RestIcon className="h-4 w-4 shrink-0 text-brand-400" />
-              Día de descanso. Aprovecha para recuperarte.
+              {t('today.restDay')}
             </p>
           )}
         </div>
@@ -115,12 +117,12 @@ export default function Today() {
             <FlameIcon active={streak > 0} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="label">Racha actual</p>
+            <p className="label">{t('today.currentStreak')}</p>
             <p className={`font-display text-3xl font-extrabold ${streak > 0 ? 'text-neon-amber' : 'text-slate-400'}`}>
-              {streak} <span className="text-base font-semibold text-slate-500">día{streak === 1 ? '' : 's'}</span>
+              {streak} <span className="text-base font-semibold text-slate-500">{streak === 1 ? t('common.day') : t('common.days')}</span>
             </p>
             <p className="truncate text-xs text-slate-500">
-              {streak === 0 ? 'Entrena hoy para empezar' : `Mejor: ${bestStreak} día${bestStreak === 1 ? '' : 's'}`}
+              {streak === 0 ? t('today.startStreakHint') : t('today.bestStreak', { count: bestStreak })}
             </p>
           </div>
         </div>
@@ -130,9 +132,9 @@ export default function Today() {
             <CoinIcon />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="label">Vortx Points</p>
+            <p className="label">{t('today.points')}</p>
             <p className="font-display text-3xl font-extrabold text-brand-300 neon-text">{points}</p>
-            <p className="truncate text-xs text-slate-500">Gánalos entrenando</p>
+            <p className="truncate text-xs text-slate-500">{t('today.earnPointsHint')}</p>
           </div>
         </div>
       </div>
@@ -140,26 +142,26 @@ export default function Today() {
       {/* Week adherence quick stat */}
       <div className="grid grid-cols-2 gap-3">
         <div className="card p-4">
-          <p className="label">Esta semana</p>
+          <p className="label">{t('today.thisWeek')}</p>
           <p className="mt-1 font-display text-3xl font-extrabold text-brand-300 neon-text">
             {trainedThisWeek}
             <span className="text-base font-semibold text-slate-500">/{plannedDays}</span>
           </p>
-          <p className="text-xs text-slate-500">sesiones completadas</p>
+          <p className="text-xs text-slate-500">{t('today.sessionsCompleted')}</p>
         </div>
         <div className="card p-4">
-          <p className="label">Total registros</p>
+          <p className="label">{t('today.totalLogs')}</p>
           <p className="mt-1 font-display text-3xl font-extrabold text-neon-pink neon-text-pink">{logs.filter((l) => l.trained).length}</p>
-          <p className="text-xs text-slate-500">entrenamientos</p>
+          <p className="text-xs text-slate-500">{t('today.workouts')}</p>
         </div>
       </div>
 
       {/* Week strip */}
       <div className="card p-4">
         <div className="mb-3 flex items-center justify-between">
-          <p className="label">Tu semana</p>
+          <p className="label">{t('today.yourWeek')}</p>
           <Link to="/cronograma" className="text-xs font-semibold text-brand-400 hover:text-brand-300">
-            Ver todo
+            {t('today.seeAll')}
           </Link>
         </div>
         <div className="flex justify-between">
@@ -177,7 +179,7 @@ export default function Today() {
                 className="flex flex-1 flex-col items-center gap-1.5"
               >
                 <span className={`text-[11px] font-semibold ${isToday ? 'text-brand-300 neon-text' : 'text-slate-500'}`}>
-                  {WEEKDAYS.find((w) => w.key === wk)?.short}
+                  {t('weekdaysShort.' + wk)}
                 </span>
                 <span
                   className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold ${

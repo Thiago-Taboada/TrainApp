@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useCatalog } from '../hooks/useCatalog'
 import { useLogs } from '../hooks/useLogs'
 import { computeStreak } from '../lib/streak'
@@ -8,6 +9,7 @@ import Spinner from '../components/Spinner.jsx'
 import { CoinIcon, CheckIcon } from '../components/icons.jsx'
 
 export default function Store() {
+  const { t } = useTranslation()
   const {
     routines,
     routineSlots,
@@ -31,7 +33,7 @@ export default function Store() {
 
   async function buySlot() {
     if (points < SLOT_COST) return
-    if (!confirm(`¿Canjear ${SLOT_COST} Vortx Points por un espacio de rutina extra?`)) return
+    if (!confirm(t('store.confirmSlot', { cost: SLOT_COST }))) return
     await buyRoutineSlot(SLOT_COST)
   }
 
@@ -42,7 +44,7 @@ export default function Store() {
       return
     }
     if (points < theme.price) return
-    if (!confirm(`¿Canjear ${theme.price} Vortx Points por el tema ${theme.name}?`)) return
+    if (!confirm(t('store.confirmTheme', { price: theme.price, name: t('themes.' + theme.id) }))) return
     await buyTheme(theme.id, theme.price)
     await setTheme(theme.id) // activate right after buying
   }
@@ -50,8 +52,8 @@ export default function Store() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="neon-title text-2xl text-brand-300">Tienda</h1>
-        <p className="text-sm text-slate-500">Canjea tus Vortx Points.</p>
+        <h1 className="neon-title text-2xl text-brand-300">{t('store.title')}</h1>
+        <p className="text-sm text-slate-500">{t('store.subtitle')}</p>
       </div>
 
       {/* Balance */}
@@ -60,9 +62,9 @@ export default function Store() {
           <CoinIcon />
         </div>
         <div>
-          <p className="label">Tu saldo</p>
+          <p className="label">{t('store.balance')}</p>
           <p className="font-display text-3xl font-extrabold text-brand-300 neon-text">{points}</p>
-          <p className="text-xs text-slate-500">Vortx Points</p>
+          <p className="text-xs text-slate-500">{t('store.points')}</p>
         </div>
       </div>
 
@@ -70,9 +72,9 @@ export default function Store() {
       <div className="card p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="font-semibold text-slate-100">Espacio de rutina extra</p>
+            <p className="font-semibold text-slate-100">{t('store.routineSlot')}</p>
             <p className="mt-0.5 text-sm text-slate-400">
-              Crea una rutina propia más. Usas {customCount} de {routineSlots}.
+              {t('store.routineSlotDesc', { used: customCount, total: routineSlots })}
             </p>
           </div>
           <span className="chip border-brand-400/40 bg-brand-500/10 text-brand-300">{SLOT_COST} pts</span>
@@ -82,13 +84,13 @@ export default function Store() {
           disabled={points < SLOT_COST}
           className="btn-primary mt-4 w-full"
         >
-          {points < SLOT_COST ? `Te faltan ${SLOT_COST - points} pts` : 'Canjear'}
+          {points < SLOT_COST ? t('store.need', { n: SLOT_COST - points }) : t('store.redeem')}
         </button>
       </div>
 
       {/* Themes */}
       <section>
-        <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-slate-400">Temas de color</h2>
+        <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-slate-400">{t('store.themes')}</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {THEMES.map((theme) => {
             const owned = ownedThemes.includes(theme.id)
@@ -103,15 +105,15 @@ export default function Store() {
                   className="h-10 w-10 rounded-full"
                   style={{ background: theme.swatch, boxShadow: `0 0 14px ${theme.swatch}80` }}
                 />
-                <p className="text-sm font-semibold text-slate-200">{theme.name}</p>
+                <p className="text-sm font-semibold text-slate-200">{t('themes.' + theme.id)}</p>
 
                 {active ? (
                   <span className="chip border-brand-400/50 bg-brand-500/15 text-brand-300">
-                    <CheckIcon className="h-3 w-3" /> Activo
+                    <CheckIcon className="h-3 w-3" /> {t('store.active')}
                   </span>
                 ) : owned ? (
                   <button onClick={() => handleTheme(theme)} className="btn-ghost w-full py-1.5 text-xs">
-                    Usar
+                    {t('store.use')}
                   </button>
                 ) : (
                   <button
@@ -119,7 +121,7 @@ export default function Store() {
                     disabled={!affordable}
                     className="btn-primary w-full py-1.5 text-xs"
                   >
-                    {affordable ? `${theme.price} pts` : `Faltan ${theme.price - points}`}
+                    {affordable ? `${theme.price} pts` : t('store.needShort', { n: theme.price - points })}
                   </button>
                 )}
               </div>
@@ -129,8 +131,8 @@ export default function Store() {
       </section>
 
       <p className="text-center text-xs text-slate-500">
-        Gana Vortx Points entrenando y manteniendo tu racha.{' '}
-        <Link to="/" className="font-semibold text-brand-400">Ver inicio</Link>
+        {t('store.earnHint')}{' '}
+        <Link to="/" className="font-semibold text-brand-400">{t('store.seeHome')}</Link>
       </p>
     </div>
   )

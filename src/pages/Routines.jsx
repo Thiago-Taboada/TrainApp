@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useCatalog } from '../hooks/useCatalog'
-import { SESSION_TYPE_META, WEEKDAYS } from '../data/seedData'
+import { SESSION_TYPE_META } from '../data/seedData'
 import Spinner from '../components/Spinner.jsx'
 
 export default function Routines() {
+  const { t } = useTranslation()
   const {
     loading,
     routines,
@@ -22,7 +24,7 @@ export default function Routines() {
     e.preventDefault()
     e.stopPropagation()
     if (routine.isTemplate) return
-    if (!confirm(`¿Eliminar la rutina "${routine.name}"?`)) return
+    if (!confirm(t('routines.confirmDelete', { name: routine.name }))) return
     await deleteRoutine(routine.id)
   }
 
@@ -30,9 +32,9 @@ export default function Routines() {
     <div className="space-y-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="neon-title text-2xl text-brand-300">Rutinas</h1>
+          <h1 className="neon-title text-2xl text-brand-300">{t('routines.title')}</h1>
           <p className="text-sm text-slate-500">
-            Activa las que quieras seguir. Crea las tuyas con tus ejercicios.
+            {t('routines.subtitle')}
           </p>
         </div>
       </div>
@@ -40,21 +42,21 @@ export default function Routines() {
       {/* Create button + slot usage */}
       {atLimit ? (
         <div className="card border-neon-amber/40 bg-neon-amber/5 p-4">
-          <p className="text-sm font-semibold text-neon-amber">Alcanzaste tu límite de rutinas</p>
+          <p className="text-sm font-semibold text-neon-amber">{t('routines.limitReached')}</p>
           <p className="mt-1 text-xs text-slate-400">
-            Usas {customCount} de {routineSlots} espacios. Consigue más con tus Vortx Points.
+            {t('routines.limitDesc', { used: customCount, total: routineSlots })}
           </p>
           <Link to="/tienda" className="btn-primary mt-3 w-full">
-            Conseguir más espacios
+            {t('routines.getMore')}
           </Link>
         </div>
       ) : (
         <div>
           <Link to="/rutinas/nueva" className="btn-primary w-full">
-            + Nueva rutina
+            {t('routines.newRoutine')}
           </Link>
           <p className="mt-1.5 text-center text-xs text-slate-500">
-            {customCount} de {routineSlots} espacios usados
+            {t('routines.slotsUsed', { used: customCount, total: routineSlots })}
           </p>
         </div>
       )}
@@ -76,9 +78,9 @@ export default function Routines() {
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="font-bold">{routine.name}</h2>
                     {routine.isTemplate && (
-                      <span className="chip border-slate-500/30 bg-ink-700/60 text-slate-400">Plantilla</span>
+                      <span className="chip border-slate-500/30 bg-ink-700/60 text-slate-400">{t('routines.template')}</span>
                     )}
-                    {active && <span className="chip border-brand-400/50 bg-brand-500/15 text-brand-300 neon-text">Activa</span>}
+                    {active && <span className="chip border-brand-400/50 bg-brand-500/15 text-brand-300 neon-text">{t('routines.active')}</span>}
                   </div>
                   {routine.description && (
                     <p className="mt-1 line-clamp-2 text-sm text-slate-500">{routine.description}</p>
@@ -93,7 +95,7 @@ export default function Routines() {
                     setActiveRoutine(routine.id, !active)
                   }}
                   className={`relative h-7 w-12 shrink-0 rounded-full transition ${active ? 'bg-brand-500 shadow-neon' : 'bg-ink-600'}`}
-                  title={active ? 'Desactivar' : 'Activar'}
+                  title={active ? t('routines.deactivate') : t('routines.activate')}
                 >
                   <span className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition ${active ? 'left-[22px]' : 'left-0.5'}`} />
                 </button>
@@ -105,15 +107,14 @@ export default function Routines() {
                   .filter((d) => d.sessionType !== 'rest')
                   .map((d) => {
                     const meta = SESSION_TYPE_META[d.sessionType] ?? SESSION_TYPE_META.rest
-                    const wd = WEEKDAYS.find((w) => w.key === d.weekday)
                     return (
                       <span key={d.weekday} className={`chip ${meta.soft} ${meta.text}`}>
-                        {wd?.short}
+                        {t('weekdaysShort.' + d.weekday)}
                       </span>
                     )
                   })}
                 <span className="chip border-slate-500/20 bg-ink-700/60 text-slate-400">
-                  {trainingDays.length} día{trainingDays.length === 1 ? '' : 's'}
+                  {t('routines.daysCount', { count: trainingDays.length })}
                 </span>
               </div>
 
@@ -123,7 +124,7 @@ export default function Routines() {
                     onClick={(e) => handleDelete(e, routine)}
                     className="text-xs font-semibold text-neon-red/80 hover:text-neon-red"
                   >
-                    Eliminar
+                    {t('routines.delete')}
                   </button>
                 </div>
               )}

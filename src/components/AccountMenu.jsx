@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useCatalog } from '../hooks/useCatalog'
 import { useLogs } from '../hooks/useLogs'
@@ -7,6 +8,7 @@ import { exportUserData } from '../lib/exportData'
 import { CoinIcon } from './icons.jsx'
 
 export default function AccountMenu() {
+  const { t } = useTranslation()
   const { user, isAdmin, signOut } = useAuth()
   const { exercises, routines, activeRoutineIds } = useCatalog()
   const { logs, weights } = useLogs()
@@ -53,7 +55,7 @@ export default function AccountMenu() {
       <button
         onClick={() => setOpen((o) => !o)}
         className="flex items-center rounded-full outline-none ring-brand-400/60 transition focus-visible:ring-2"
-        title="Cuenta"
+        title={t('menu.accountTitle')}
         aria-haspopup="menu"
         aria-expanded={open}
       >
@@ -86,25 +88,25 @@ export default function AccountMenu() {
               </span>
             )}
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-slate-100">{user?.displayName || 'Atleta'}</p>
+              <p className="truncate text-sm font-semibold text-slate-100">{user?.displayName || t('menu.defaultAthlete')}</p>
               <p className="truncate text-xs text-slate-400">{user?.email}</p>
             </div>
           </div>
 
           {/* Items */}
           <div className="p-1.5">
-            <MenuItem onClick={() => go('/cuenta')} icon={<UserIcon />}>Mi cuenta</MenuItem>
-            <MenuItem onClick={() => go('/tienda')} icon={<CoinIcon className="h-5 w-5" />}>Tienda</MenuItem>
-            <MenuItem onClick={() => go('/rutinas')} icon={<ListIcon />}>Rutinas</MenuItem>
-            <MenuItem onClick={handleExport} icon={<DownloadIcon />}>Exportar mis datos</MenuItem>
+            <MenuItem onClick={() => go('/cuenta')} icon={<UserIcon />}>{t('menu.account')}</MenuItem>
+            <MenuItem onClick={() => go('/tienda')} icon={<CoinIcon className="h-5 w-5" />}>{t('menu.store')}</MenuItem>
+            <MenuItem onClick={() => go('/rutinas')} icon={<ListIcon />}>{t('menu.routines')}</MenuItem>
+            <MenuItem onClick={handleExport} icon={<DownloadIcon />}>{t('menu.exportData')}</MenuItem>
             {isAdmin && (
-              <MenuItem onClick={() => go('/admin')} icon={<ShieldIcon />}>Administración</MenuItem>
+              <MenuItem onClick={() => go('/admin')} icon={<ShieldIcon />}>{t('menu.admin')}</MenuItem>
             )}
           </div>
 
           <div className="border-t border-brand-500/15 p-1.5">
             <MenuItem onClick={signOut} icon={<LogoutIcon />} danger>
-              Cerrar sesión
+              {t('menu.signOut')}
             </MenuItem>
           </div>
 

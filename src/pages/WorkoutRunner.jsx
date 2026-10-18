@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useCatalog } from '../hooks/useCatalog'
-import { WEEKDAYS } from '../data/seedData'
 import { sessionForDay, metaFor, formatClock } from '../lib/sessions'
 import { toISODate, weekdayKey } from '../lib/dates'
 import Spinner from '../components/Spinner.jsx'
@@ -15,7 +15,7 @@ function buildSteps(day, exercises) {
     for (let s = 0; s < (block.sets || 1); s++) {
       steps.push({
         exerciseId: block.exerciseId,
-        name: ex?.name ?? '[Ejercicio eliminado]',
+        name: ex?.name ?? '',
         description: ex?.description ?? '',
         cues: ex?.cues ?? [],
         tracking: ex?.tracking ?? 'reps',
@@ -38,6 +38,7 @@ function parseTargetSeconds(repsText) {
 }
 
 export default function WorkoutRunner() {
+  const { t } = useTranslation()
   const { weekday } = useParams()
   const [params] = useSearchParams()
   const navigate = useNavigate()
@@ -82,13 +83,12 @@ export default function WorkoutRunner() {
   if (loading) return <Spinner />
 
   const meta = metaFor(day.sessionType)
-  const wd = WEEKDAYS.find((w) => w.key === resolvedWeekday)
 
   if (steps.length === 0) {
     return (
       <div className="card p-8 text-center">
-        <p className="text-slate-400">No hay ejercicios para esta sesión.</p>
-        <Link to="/" className="btn-primary mt-4">Volver</Link>
+        <p className="text-slate-400">{t('runner.noExercises')}</p>
+        <Link to="/" className="btn-primary mt-4">{t('runner.back')}</Link>
       </div>
     )
   }
@@ -140,18 +140,18 @@ export default function WorkoutRunner() {
           <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full border border-brand-400/50 text-brand-300 shadow-neon">
             <CheckIcon className="h-7 w-7" />
           </div>
-          <h1 className="neon-title text-xl text-brand-300">¡Sesión completada!</h1>
+          <h1 className="neon-title text-xl text-brand-300">{t('runner.completed')}</h1>
           <p className="mt-2 text-sm text-slate-400">
-            Terminaste {steps.length} series de {day.label}.
+            {t('runner.completedDetail', { count: steps.length, label: day.label })}
           </p>
           <Link
             to={`/sesion/${resolvedWeekday}?date=${dateISO}`}
             className="btn-primary mt-5 w-full"
           >
-            Registrar los detalles
+            {t('runner.logDetails')}
           </Link>
           <Link to="/" className="btn-ghost mt-3 w-full">
-            Volver al inicio
+            {t('runner.backHome')}
           </Link>
         </div>
       </div>
@@ -167,7 +167,7 @@ export default function WorkoutRunner() {
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
-            Salir
+            {t('runner.exit')}
           </Link>
           <span className="font-mono text-xs text-slate-400">
             {index + 1} / {steps.length}
@@ -190,11 +190,11 @@ export default function WorkoutRunner() {
       ) : (
         <div className="card p-6 text-center">
           <p className="font-mono text-xs uppercase tracking-widest text-neon-pink">
-            {wd?.label} · {meta.label}
+            {t('weekdays.' + resolvedWeekday)} · {t('sessionTypes.' + day.sessionType)}
           </p>
-          <h1 className="mt-3 text-2xl font-extrabold text-slate-100">{step.name}</h1>
+          <h1 className="mt-3 text-2xl font-extrabold text-slate-100">{step.name || t('sessionLog.deletedExercise')}</h1>
           <p className="mt-1 text-sm text-slate-400">
-            Serie {step.setNumber} de {step.totalSets}
+            {t('runner.setOf', { current: step.setNumber, total: step.totalSets })}
           </p>
 
           {step.description && (
@@ -224,22 +224,22 @@ export default function WorkoutRunner() {
           ) : (
             <>
               <div className="my-6 rounded-2xl border border-brand-500/20 bg-ink-900/60 py-6">
-                <p className="label">Objetivo</p>
+                <p className="label">{t('runner.target')}</p>
                 <p className="font-display text-4xl font-extrabold text-brand-300 neon-text">
                   {step.repsText}
                 </p>
-                {step.perSide && <p className="mt-1 text-xs text-slate-400">por lado</p>}
+                {step.perSide && <p className="mt-1 text-xs text-slate-400">{t('runner.perSide')}</p>}
               </div>
 
               <button onClick={completeSet} className="btn-primary w-full py-3 text-base">
                 <CheckIcon className="h-5 w-5" />
-                Serie completada
+                {t('runner.setDone')}
               </button>
             </>
           )}
 
           {step.restSeconds === 0 && !isLast && (
-            <p className="mt-3 text-xs text-slate-500">Sin descanso · pasa a la siguiente</p>
+            <p className="mt-3 text-xs text-slate-500">{t('runner.noRest')}</p>
           )}
         </div>
       )}
@@ -247,11 +247,11 @@ export default function WorkoutRunner() {
       {/* Up next */}
       {!resting && steps[index + 1] && (
         <div className="card flex items-center gap-3 p-4">
-          <span className="font-mono text-[10px] uppercase tracking-widest text-slate-500">Sigue</span>
+          <span className="font-mono text-[10px] uppercase tracking-widest text-slate-500">{t('runner.upNext')}</span>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-slate-200">{steps[index + 1].name}</p>
+            <p className="truncate text-sm font-semibold text-slate-200">{steps[index + 1].name || t('sessionLog.deletedExercise')}</p>
             <p className="text-xs text-slate-400">
-              Serie {steps[index + 1].setNumber} de {steps[index + 1].totalSets} · {steps[index + 1].repsText}
+              {t('runner.setOf', { current: steps[index + 1].setNumber, total: steps[index + 1].totalSets })} · {steps[index + 1].repsText}
             </p>
           </div>
         </div>
@@ -263,6 +263,7 @@ export default function WorkoutRunner() {
 // Timer for time-based exercises: a 3-2-1 countdown, then a stopwatch counting
 // up. Start/Pause and Reset. Shows the target hold time as reference.
 function ExerciseTimer({ target, repsText, perSide, onComplete }) {
+  const { t } = useTranslation()
   // phase: 'idle' | 'countdown' | 'running' | 'paused'
   const [phase, setPhase] = useState('idle')
   const [countdown, setCountdown] = useState(3)
@@ -323,7 +324,7 @@ function ExerciseTimer({ target, repsText, perSide, onComplete }) {
       >
         {phase === 'countdown' ? (
           <span className="font-display text-6xl font-extrabold text-neon-amber neon-text-pink">
-            {countdown === 0 ? '¡Ya!' : countdown}
+            {countdown === 0 ? t('runner.now') : countdown}
           </span>
         ) : (
           <div className="text-center">
@@ -331,55 +332,56 @@ function ExerciseTimer({ target, repsText, perSide, onComplete }) {
               {formatClock(elapsed)}
             </span>
             {target > 0 && (
-              <p className="mt-1 font-mono text-xs text-slate-500">meta {formatClock(target)}</p>
+              <p className="mt-1 font-mono text-xs text-slate-500">{t('runner.goal')} {formatClock(target)}</p>
             )}
           </div>
         )}
       </div>
 
-      {perSide && <p className="mt-2 text-center text-xs text-slate-400">por lado</p>}
+      {perSide && <p className="mt-2 text-center text-xs text-slate-400">{t('runner.perSide')}</p>}
       {phase === 'idle' && target > 0 && (
-        <p className="mt-2 text-center text-sm text-slate-400">Objetivo: {repsText}</p>
+        <p className="mt-2 text-center text-sm text-slate-400">{t('runner.target')}: {repsText}</p>
       )}
 
       {/* Controls */}
       <div className="mt-5 flex gap-2">
         {phase === 'idle' && (
-          <button onClick={start} className="btn-primary flex-1 py-3">Iniciar</button>
+          <button onClick={start} className="btn-primary flex-1 py-3">{t('runner.start')}</button>
         )}
         {phase === 'countdown' && (
-          <button onClick={reset} className="btn-ghost flex-1 py-3">Cancelar</button>
+          <button onClick={reset} className="btn-ghost flex-1 py-3">{t('runner.cancel')}</button>
         )}
         {phase === 'running' && (
           <>
-            <button onClick={pause} className="btn-ghost flex-1 py-3">Pausar</button>
-            <button onClick={reset} className="btn-ghost flex-1 py-3">Restablecer</button>
+            <button onClick={pause} className="btn-ghost flex-1 py-3">{t('runner.pause')}</button>
+            <button onClick={reset} className="btn-ghost flex-1 py-3">{t('runner.reset')}</button>
           </>
         )}
         {phase === 'paused' && (
           <>
-            <button onClick={resume} className="btn-primary flex-1 py-3">Reanudar</button>
-            <button onClick={reset} className="btn-ghost flex-1 py-3">Restablecer</button>
+            <button onClick={resume} className="btn-primary flex-1 py-3">{t('runner.resume')}</button>
+            <button onClick={reset} className="btn-ghost flex-1 py-3">{t('runner.reset')}</button>
           </>
         )}
       </div>
 
       <button onClick={onComplete} className="btn-primary mt-3 w-full py-3 text-base">
         <CheckIcon className="h-5 w-5" />
-        Serie completada
+        {t('runner.setDone')}
       </button>
     </div>
   )
 }
 
 function RestView({ remaining, total, nextStep, onSkip, onAddTime, meta }) {
+  const { t } = useTranslation()
   // Fraction of time already elapsed, clamped to [0,1] so the ring can never
   // overfill or spin backwards even if time is added mid-rest.
   const elapsedFraction = total > 0 ? Math.min(1, Math.max(0, (total - remaining) / total)) : 1
   const pct = elapsedFraction * 100
   return (
     <div className="card p-6 text-center">
-      <p className="font-mono text-xs uppercase tracking-widest text-neon-amber">Descanso</p>
+      <p className="font-mono text-xs uppercase tracking-widest text-neon-amber">{t('runner.rest')}</p>
 
       {/* Ring timer */}
       <div className="relative mx-auto my-5 h-44 w-44">
@@ -407,13 +409,13 @@ function RestView({ remaining, total, nextStep, onSkip, onAddTime, meta }) {
 
       {nextStep && (
         <p className="text-sm text-slate-400">
-          Luego: <span className="font-semibold text-slate-200">{nextStep.name}</span> · serie {nextStep.setNumber}
+          {t('runner.then')} <span className="font-semibold text-slate-200">{nextStep.name || t('sessionLog.deletedExercise')}</span> · {t('runner.thenSet')} {nextStep.setNumber}
         </p>
       )}
 
       <div className="mt-5 flex gap-2">
-        <button onClick={onAddTime} className="btn-ghost flex-1">+15 s</button>
-        <button onClick={onSkip} className="btn-primary flex-1">Saltar descanso</button>
+        <button onClick={onAddTime} className="btn-ghost flex-1">{t('runner.addTime')}</button>
+        <button onClick={onSkip} className="btn-primary flex-1">{t('runner.skipRest')}</button>
       </div>
     </div>
   )

@@ -1,24 +1,26 @@
 import { NavLink, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import AccountMenu from './AccountMenu.jsx'
 
 const NAV = [
-  { to: '/', label: 'Hoy', icon: HomeIcon, end: true },
-  { to: '/biblioteca', label: 'Ejercicios', icon: BookIcon },
-  { to: '/rutinas', label: 'Rutinas', icon: ListIcon },
-  { to: '/cronograma', label: 'Cronograma', icon: CalendarIcon },
-  { to: '/analisis', label: 'Análisis', icon: ChartIcon },
+  { to: '/', key: 'today', icon: HomeIcon, end: true },
+  { to: '/biblioteca', key: 'exercises', icon: BookIcon },
+  { to: '/rutinas', key: 'routines', icon: ListIcon },
+  { to: '/cronograma', key: 'schedule', icon: CalendarIcon },
+  { to: '/analisis', key: 'analysis', icon: ChartIcon },
 ]
 
 // Labels for routes that aren't in the main nav (shown in the header subtitle).
 const EXTRA_LABELS = [
-  { to: '/cuenta', label: 'Mi cuenta' },
-  { to: '/tienda', label: 'Tienda' },
-  { to: '/admin', label: 'Administración' },
-  { to: '/sesion', label: 'Registro' },
-  { to: '/entrenar', label: 'Entrenamiento' },
+  { to: '/cuenta', key: 'account' },
+  { to: '/tienda', key: 'store' },
+  { to: '/admin', key: 'admin' },
+  { to: '/sesion', key: 'session' },
+  { to: '/entrenar', key: 'workout' },
 ]
 
 export default function Layout({ children }) {
+  const { t } = useTranslation()
   const location = useLocation()
   const path = location.pathname
   const current =
@@ -35,7 +37,7 @@ export default function Layout({ children }) {
             <span className="brand-font text-2xl leading-none text-brand-300">Vortx</span>
             {current && (
               <span className="ml-1 hidden font-mono text-xs uppercase tracking-widest text-neon-pink sm:inline">
-                // {current.label}
+                // {t(`nav.${current.key}`)}
               </span>
             )}
           </div>
@@ -56,7 +58,7 @@ export default function Layout({ children }) {
                     }`
                   }
                 >
-                  {n.label}
+                  {t(`nav.${n.key}`)}
                 </NavLink>
               ))}
             </nav>
@@ -85,7 +87,7 @@ export default function Layout({ children }) {
                 }
               >
                 <Icon />
-                {n.label}
+                {t(`nav.${n.key}`)}
               </NavLink>
             )
           })}

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useCatalog } from '../hooks/useCatalog'
 import { CATEGORIES, MUSCLE_GROUPS } from '../data/seedData'
 import Spinner from '../components/Spinner.jsx'
@@ -12,6 +13,7 @@ const CATEGORY_STYLE = {
 }
 
 export default function Library() {
+  const { t } = useTranslation()
   const { exercises, loading } = useCatalog()
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('all')
@@ -41,11 +43,11 @@ export default function Library() {
     <div className="space-y-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="neon-title text-2xl text-brand-300">Biblioteca de ejercicios</h1>
-          <p className="text-sm text-slate-500">Guía de técnica, con búsqueda y filtros.</p>
+          <h1 className="neon-title text-2xl text-brand-300">{t('library.title')}</h1>
+          <p className="text-sm text-slate-500">{t('library.subtitle')}</p>
         </div>
         <Link to="/ejercicios/nuevo" className="btn-primary shrink-0 px-3 py-2 text-xs">
-          + Nuevo
+          {t('library.newExercise')}
         </Link>
       </div>
 
@@ -55,7 +57,7 @@ export default function Library() {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar ejercicio…"
+          placeholder={t('library.search')}
           className="input pl-10"
         />
       </div>
@@ -63,11 +65,11 @@ export default function Library() {
       {/* Category filters */}
       <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
         <FilterChip active={category === 'all'} onClick={() => setCategory('all')}>
-          Todas
+          {t('library.all')}
         </FilterChip>
-        {Object.entries(CATEGORIES).map(([key, label]) => (
+        {Object.keys(CATEGORIES).map((key) => (
           <FilterChip key={key} active={category === key} onClick={() => setCategory(key)}>
-            {label}
+            {t('categories.' + key)}
           </FilterChip>
         ))}
       </div>
@@ -75,29 +77,29 @@ export default function Library() {
       {/* Muscle group filters */}
       <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
         <FilterChip small active={muscle === 'all'} onClick={() => setMuscle('all')}>
-          Todos los grupos
+          {t('library.all')}
         </FilterChip>
-        {Object.entries(MUSCLE_GROUPS).map(([key, label]) => (
+        {Object.keys(MUSCLE_GROUPS).map((key) => (
           <FilterChip key={key} small active={muscle === key} onClick={() => setMuscle(key)}>
-            {label}
+            {t('muscles.' + key)}
           </FilterChip>
         ))}
       </div>
 
       <p className="text-xs font-medium text-slate-400">
-        {filtered.length} ejercicio{filtered.length === 1 ? '' : 's'}
+        {t('library.resultsCount', { count: filtered.length })}
       </p>
 
       {filtered.length === 0 ? (
         <div className="card p-8 text-center text-sm text-slate-500">
-          No se encontraron ejercicios con esos filtros.
+          {t('library.noResults')}
         </div>
       ) : (
         <div className="space-y-6">
           {Object.entries(grouped).map(([cat, items]) => (
             <section key={cat}>
               <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-slate-400">
-                {CATEGORIES[cat] ?? cat}
+                {t('categories.' + cat)}
               </h2>
               <div className="grid gap-3 sm:grid-cols-2">
                 {items.map((ex) => (
@@ -109,17 +111,17 @@ export default function Library() {
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="flex items-center gap-1.5 font-semibold leading-tight">
                         {ex.name}
-                        {ex.isCustom && <span className="chip border-neon-purple/40 bg-neon-purple/10 text-neon-purple">Mío</span>}
+                        {ex.isCustom && <span className="chip border-neon-purple/40 bg-neon-purple/10 text-neon-purple">{t('library.own')}</span>}
                       </h3>
                       <span className={`chip ${CATEGORY_STYLE[ex.category] ?? 'bg-ink-700 text-slate-400'}`}>
-                        {CATEGORIES[ex.category]}
+                        {t('categories.' + ex.category)}
                       </span>
                     </div>
                     <p className="line-clamp-2 text-sm text-slate-500">{ex.description}</p>
                     <div className="mt-1 flex flex-wrap gap-1.5">
                       {(ex.muscleGroups ?? []).map((m) => (
                         <span key={m} className="chip border-slate-500/20 bg-ink-700/60 text-slate-400">
-                          {MUSCLE_GROUPS[m] ?? m}
+                          {t('muscles.' + m)}
                         </span>
                       ))}
                     </div>

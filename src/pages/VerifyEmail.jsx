@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext.jsx'
 
 export default function VerifyEmail() {
+  const { t } = useTranslation()
   const { user, resendVerification, reloadUser, signOut, error } = useAuth()
   const [checking, setChecking] = useState(false)
   const [resent, setResent] = useState(false)
@@ -53,24 +55,24 @@ export default function VerifyEmail() {
           <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-brand-400/50 bg-ink-900 text-brand-300 shadow-neon">
             <MailIcon />
           </div>
-          <h1 className="neon-title text-xl text-brand-300">Verifica tu correo</h1>
+          <h1 className="neon-title text-xl text-brand-300">{t('verify.title')}</h1>
           <p className="mt-2 text-sm text-slate-400">
-            Enviamos un enlace de verificación a
+            {t('verify.sentTo')}
           </p>
           <p className="font-mono text-sm text-brand-200">{user?.email}</p>
           <p className="mt-3 text-xs text-slate-500">
-            Abre el enlace y luego vuelve aquí. Revisa también spam.
+            {t('verify.openLink')}
           </p>
         </div>
 
         {resent && (
           <p className="mb-3 rounded-lg border border-brand-400/40 bg-brand-500/10 px-3 py-2 text-sm text-brand-300">
-            Correo reenviado. Revisa tu bandeja.
+            {t('verify.resent')}
           </p>
         )}
         {notYet && (
           <p className="mb-3 rounded-lg border border-neon-amber/40 bg-neon-amber/10 px-3 py-2 text-sm text-neon-amber">
-            Aún no detectamos la verificación. Abre el enlace y reintenta.
+            {t('verify.notYet')}
           </p>
         )}
         {error && (
@@ -80,7 +82,7 @@ export default function VerifyEmail() {
         )}
 
         <button onClick={handleCheck} disabled={checking} className="btn-primary w-full">
-          {checking ? 'Comprobando…' : 'Ya verifiqué mi correo'}
+          {checking ? t('verify.checking') : t('verify.iVerified')}
         </button>
 
         <button
@@ -88,14 +90,14 @@ export default function VerifyEmail() {
           disabled={cooldown > 0}
           className="btn-ghost mt-3 w-full"
         >
-          {cooldown > 0 ? `Reenviar en ${cooldown}s` : 'Reenviar correo'}
+          {cooldown > 0 ? t('verify.resendIn', { secs: cooldown }) : t('verify.resend')}
         </button>
 
         <button
           onClick={signOut}
           className="mt-5 w-full text-center text-xs font-semibold text-slate-500 hover:text-neon-pink"
         >
-          Usar otra cuenta
+          {t('verify.useAnother')}
         </button>
       </div>
     </div>

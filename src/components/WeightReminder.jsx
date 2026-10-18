@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useLogs } from '../hooks/useLogs'
 import { toISODate, weekId } from '../lib/dates'
 
@@ -6,6 +7,7 @@ import { toISODate, weekId } from '../lib/dates'
 // week. Because it keys off weekId, it appears every Monday (new week) and
 // stays until logged, then returns next week.
 export default function WeightReminder() {
+  const { t } = useTranslation()
   const { weights, saveWeight } = useLogs()
   const [value, setValue] = useState('')
   const [saving, setSaving] = useState(false)
@@ -33,8 +35,8 @@ export default function WeightReminder() {
           <ScaleIcon />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="font-semibold text-slate-100">Registra tu peso de la semana</p>
-          <p className="text-xs text-slate-400">Un registro semanal para seguir tu evolución.</p>
+          <p className="font-semibold text-slate-100">{t('weight.title')}</p>
+          <p className="text-xs text-slate-400">{t('weight.subtitle')}</p>
           <div className="mt-3 flex gap-2">
             <div className="relative flex-1">
               <input
@@ -43,14 +45,14 @@ export default function WeightReminder() {
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSave()}
-                placeholder="Ej. 72.5"
+                placeholder={t('weight.placeholder')}
                 className="input pr-9"
                 autoFocus
               />
               <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500">kg</span>
             </div>
             <button onClick={handleSave} disabled={saving || !value} className="btn-primary px-4">
-              {saving ? '…' : 'Guardar'}
+              {saving ? '…' : t('weight.save')}
             </button>
           </div>
         </div>

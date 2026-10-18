@@ -1,16 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useCatalog } from '../hooks/useCatalog'
-import { CATEGORIES, SESSION_TYPE_META, WEEKDAYS } from '../data/seedData'
+import { SESSION_TYPE_META, WEEKDAYS } from '../data/seedData'
 import { formatRest } from '../lib/sessions'
 import Spinner from '../components/Spinner.jsx'
 
-const SESSION_TYPES = [
-  { key: 'strength', label: 'Fuerza' },
-  { key: 'flexibility', label: 'Flexibilidad' },
-  { key: 'mobility', label: 'Movilidad' },
-  { key: 'rest', label: 'Descanso' },
-]
+const SESSION_TYPE_KEYS = ['strength', 'flexibility', 'mobility', 'rest']
 
 function emptyDays() {
   return WEEKDAYS.map((w) => ({
@@ -23,6 +19,7 @@ function emptyDays() {
 }
 
 export default function RoutineEditor({ admin = false }) {
+  const { t } = useTranslation()
   const { routineId } = useParams()
   const navigate = useNavigate()
   const catalog = useCatalog()
@@ -78,7 +75,7 @@ export default function RoutineEditor({ admin = false }) {
     return (
       <div className="space-y-5">
         <Link to="/rutinas" className="inline-flex items-center gap-1 text-sm font-semibold text-slate-400 hover:text-brand-300">
-          <ChevronLeft /> Rutinas
+          <ChevronLeft /> {t('routineEditor.backRoutines')}
         </Link>
         <TemplateView routine={existing} exercises={exercises} navigate={navigate} />
       </div>
@@ -113,7 +110,7 @@ export default function RoutineEditor({ admin = false }) {
 
   async function handleSave() {
     if (!name.trim()) {
-      alert('Ponle un nombre a la rutina.')
+      alert(t('routineEditor.needName'))
       return
     }
     setSaving(true)
@@ -146,14 +143,14 @@ export default function RoutineEditor({ admin = false }) {
       return id
     } catch (err) {
       console.error(err)
-      alert('No se pudo guardar: ' + (err?.message ?? 'error'))
+      alert(t('routineEditor.saveError') + (err?.message ?? t('routineEditor.saveErrorFallback')))
     } finally {
       setSaving(false)
     }
   }
 
   async function handleDelete() {
-    if (!confirm('¿Eliminar esta rutina?')) return
+    if (!confirm(t('routineEditor.confirmDelete'))) return
     await deleteRoutine(routineId)
     navigate(backTo)
   }
@@ -161,29 +158,28 @@ export default function RoutineEditor({ admin = false }) {
   return (
     <div className="space-y-5">
       <Link to={backTo} className="inline-flex items-center gap-1 text-sm font-semibold text-slate-400 hover:text-brand-300">
-        <ChevronLeft /> {admin ? 'Administración' : 'Rutinas'}
+        <ChevronLeft /> {admin ? t('routineEditor.backAdmin') : t('routineEditor.backRoutines')}
       </Link>
 
       <h1 className="neon-title text-2xl text-brand-300">
-        {editing ? 'Editar rutina' : 'Nueva rutina'}
+        {editing ? t('routineEditor.editTitle') : t('routineEditor.newTitle')}
       </h1>
 
       {/* Meta */}
       <div className="card space-y-4 p-5">
         <div>
-          <label className="label mb-1.5">Nombre</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej. Mi rutina de fuerza" className="input" />
+          <label className="label mb-1.5">{t('routineEditor.name')}</label>
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('routineEditor.namePlaceholder')} className="input" />
         </div>
         <div>
-          <label className="label mb-1.5">Descripción</label>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder="¿De qué trata esta rutina?" className="input resize-none" />
+          <label className="label mb-1.5">{t('routineEditor.description')}</label>
+          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder={t('routineEditor.descriptionPlaceholder')} className="input resize-none" />
         </div>
       </div>
 
       {/* Days accordion */}
       <div className="space-y-3">
         {days.map((d) => {
-          const wd = WEEKDAYS.find((w) => w.key === d.weekday)
           const meta = SESSION_TYPE_META[d.sessionType] ?? SESSION_TYPE_META.rest
           const isOpen = openDay === d.weekday
           return (
@@ -195,9 +191,9 @@ export default function RoutineEditor({ admin = false }) {
                 <div className="flex items-center gap-3">
                   <span className={`h-3 w-3 rounded-full ${meta.color}`} />
                   <div>
-                    <p className="font-bold">{wd?.label}</p>
+                    <p className="font-bold">{t('weekdays.' + d.weekday)}</p>
                     <p className="text-xs text-slate-500">
-                      {d.sessionType === 'rest' ? 'Descanso' : `${meta.label} · ${d.blocks.length} ejercicios`}
+                      {d.sessionType === 'rest' ? t('routineEditor.rest') : t('routineEditor.typeExercises', { type: t('sessionTypes.' + d.sessionType), count: d.blocks.length })}
                     </p>
                   </div>
                 </div>
@@ -208,17 +204,17 @@ export default function RoutineEditor({ admin = false }) {
                 <div className="space-y-4 border-t border-slate-100 p-4">
                   {/* Session type */}
                   <div className="flex flex-wrap gap-2">
-                    {SESSION_TYPES.map((t) => (
+                    {SESSION_TYPE_KEYS.map((key) => (
                       <button
-                        key={t.key}
-                        onClick={() => updateDay(d.weekday, { sessionType: t.key })}
+                        key={key}
+                        onClick={() => updateDay(d.weekday, { sessionType: key })}
                         className={`chip border ${
-                          d.sessionType === t.key
+                          d.sessionType === key
                             ? 'border-brand-400 bg-brand-500/20 text-brand-200 shadow-neon'
                             : 'border-slate-500/25 bg-ink-800/60 text-slate-400 hover:border-brand-400/40 hover:text-brand-200'
                         }`}
                       >
-                        {t.label}
+                        {t('sessionTypes.' + key)}
                       </button>
                     ))}
                   </div>
@@ -226,11 +222,11 @@ export default function RoutineEditor({ admin = false }) {
                   {d.sessionType !== 'rest' && (
                     <>
                       <div>
-                        <label className="label mb-1.5">Nombre de la sesión (opcional)</label>
+                        <label className="label mb-1.5">{t('routineEditor.sessionName')}</label>
                         <input
                           value={d.label}
                           onChange={(e) => updateDay(d.weekday, { label: e.target.value })}
-                          placeholder={defaultLabel(d.sessionType)}
+                          placeholder={t('sessionTypes.' + d.sessionType)}
                           className="input"
                         />
                       </div>
@@ -242,25 +238,25 @@ export default function RoutineEditor({ admin = false }) {
                           return (
                             <div key={i} className="rounded-xl border border-slate-500/15 bg-ink-900/60 p-3">
                               <div className="mb-2 flex items-center justify-between">
-                                <p className="font-semibold text-sm">{ex?.name ?? '[Ejercicio eliminado]'}</p>
+                                <p className="font-semibold text-sm">{ex?.name ?? t('routineEditor.deletedExercise')}</p>
                                 <button onClick={() => removeBlock(d.weekday, i)} className="text-slate-400 hover:text-red-500">×</button>
                               </div>
                               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                                <Field label="Series">
+                                <Field label={t('routineEditor.sets')}>
                                   <input type="number" inputMode="numeric" value={b.sets} onChange={(e) => updateBlock(d.weekday, i, { sets: e.target.value })} className="input px-2 py-1.5 text-center" />
                                 </Field>
-                                <Field label="Reps">
+                                <Field label={t('routineEditor.reps')}>
                                   <input value={b.repsText} onChange={(e) => updateBlock(d.weekday, i, { repsText: e.target.value })} placeholder="8-12" className="input px-2 py-1.5 text-center" />
                                 </Field>
-                                <Field label="Descanso (s)">
+                                <Field label={t('routineEditor.restSeconds')}>
                                   <input type="number" inputMode="numeric" value={b.restSeconds ?? ''} onChange={(e) => updateBlock(d.weekday, i, { restSeconds: e.target.value })} placeholder="60" className="input px-2 py-1.5 text-center" />
                                 </Field>
-                                <Field label="Por lado">
+                                <Field label={t('routineEditor.perSide')}>
                                   <button
                                     onClick={() => updateBlock(d.weekday, i, { perSide: !b.perSide })}
                                     className={`input flex items-center justify-center px-2 py-1.5 ${b.perSide ? 'border-brand-400/60 bg-brand-500/15 text-brand-300' : 'text-slate-400'}`}
                                   >
-                                    {b.perSide ? 'Sí' : 'No'}
+                                    {b.perSide ? t('routineEditor.yes') : t('routineEditor.no')}
                                   </button>
                                 </Field>
                               </div>
@@ -282,11 +278,11 @@ export default function RoutineEditor({ admin = false }) {
 
       <div className="flex gap-3">
         <button onClick={handleSave} disabled={saving} className="btn-primary flex-1">
-          {saving ? 'Guardando…' : 'Guardar rutina'}
+          {saving ? t('routineEditor.saving') : t('routineEditor.saveRoutine')}
         </button>
         {editing && !isTemplate && (
           <button onClick={handleDelete} className="btn border border-neon-red/50 bg-neon-red/10 text-neon-red hover:bg-neon-red/20">
-            Eliminar
+            {t('routineEditor.delete')}
           </button>
         )}
       </div>
@@ -295,6 +291,7 @@ export default function RoutineEditor({ admin = false }) {
 }
 
 function AddExercise({ exercises, onAdd }) {
+  const { t } = useTranslation()
   const [sel, setSel] = useState('')
   const grouped = useMemo(() => {
     const m = {}
@@ -305,9 +302,9 @@ function AddExercise({ exercises, onAdd }) {
   return (
     <div className="flex gap-2">
       <select value={sel} onChange={(e) => setSel(e.target.value)} className="input flex-1">
-        <option value="">Añadir ejercicio…</option>
+        <option value="">{t('routineEditor.addExercise')}</option>
         {Object.entries(grouped).map(([cat, items]) => (
-          <optgroup key={cat} label={CATEGORIES[cat] ?? cat}>
+          <optgroup key={cat} label={t('categories.' + cat)}>
             {items
               .slice()
               .sort((a, b) => a.name.localeCompare(b.name))
@@ -326,7 +323,7 @@ function AddExercise({ exercises, onAdd }) {
         }}
         className="btn-ghost"
       >
-        Añadir
+        {t('routineEditor.add')}
       </button>
     </div>
   )
@@ -342,10 +339,11 @@ function Field({ label, children }) {
 }
 
 function TemplateView({ routine, exercises, navigate }) {
+  const { t } = useTranslation()
   const { saveRoutine } = useCatalog()
   async function duplicate() {
     const copy = {
-      name: routine.name + ' (copia)',
+      name: routine.name + t('routineEditor.copySuffix'),
       description: routine.description ?? '',
       days: (routine.days ?? []).map((d) => ({ ...d, blocks: (d.blocks ?? []).map((b) => ({ ...b })) })),
     }
@@ -355,7 +353,7 @@ function TemplateView({ routine, exercises, navigate }) {
   return (
     <div className="space-y-5">
       <div className="card border-neon-amber/40 bg-neon-amber/10 p-4 text-sm text-neon-amber">
-        Esta es la rutina plantilla y no se puede editar directamente. Duplícala para crear tu propia versión editable.
+        {t('routineEditor.templateWarning')}
       </div>
       <h1 className="neon-title text-2xl text-brand-300">{routine.name}</h1>
       <p className="text-sm text-slate-500">{routine.description}</p>
@@ -364,17 +362,16 @@ function TemplateView({ routine, exercises, navigate }) {
           .filter((d) => d.sessionType !== 'rest')
           .map((d) => {
             const meta = SESSION_TYPE_META[d.sessionType] ?? SESSION_TYPE_META.rest
-            const wd = WEEKDAYS.find((w) => w.key === d.weekday)
             return (
               <div key={d.weekday} className="card p-4">
                 <div className="flex items-center gap-2">
                   <span className={`h-3 w-3 rounded-full ${meta.color}`} />
-                  <p className="font-bold">{wd?.label} · {d.label}</p>
+                  <p className="font-bold">{t('weekdays.' + d.weekday)} · {d.label}</p>
                 </div>
                 <ul className="mt-2 space-y-1 text-sm text-slate-300">
                   {d.blocks.map((b, i) => (
                     <li key={i} className="flex justify-between">
-                      <span>{exercises.find((e) => e.id === b.exerciseId)?.name ?? '[Ejercicio eliminado]'}</span>
+                      <span>{exercises.find((e) => e.id === b.exerciseId)?.name ?? t('routineEditor.deletedExercise')}</span>
                       <span className="font-semibold text-slate-400">{b.sets}×{b.repsText}</span>
                     </li>
                   ))}
@@ -383,7 +380,7 @@ function TemplateView({ routine, exercises, navigate }) {
             )
           })}
       </div>
-      <button onClick={duplicate} className="btn-primary w-full">Duplicar para editar</button>
+      <button onClick={duplicate} className="btn-primary w-full">{t('routineEditor.duplicateToEdit')}</button>
     </div>
   )
 }
