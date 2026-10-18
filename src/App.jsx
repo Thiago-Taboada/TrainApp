@@ -19,6 +19,8 @@ import Account from './pages/Account.jsx'
 import WorkoutRunner from './pages/WorkoutRunner.jsx'
 import Admin from './pages/Admin.jsx'
 import AdminExerciseEditor from './pages/AdminExerciseEditor.jsx'
+import AdminUsers from './pages/AdminUsers.jsx'
+import AdminUserDetail from './pages/AdminUserDetail.jsx'
 
 export default function App() {
   const { user, loading, needsEmailVerification } = useAuth()
@@ -58,6 +60,8 @@ export default function App() {
           <Route path="/admin/ejercicio/nuevo" element={<AdminExerciseEditor />} />
           <Route path="/admin/ejercicio/:exerciseId" element={<AdminExerciseEditor />} />
           <Route path="/admin/rutina/:routineId" element={<RoutineEditor admin />} />
+          <Route path="/admin/usuarios" element={<AdminUsers />} />
+          <Route path="/admin/usuarios/:uid" element={<AdminUserDetail />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         </Layout>

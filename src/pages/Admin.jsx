@@ -44,8 +44,16 @@ export default function Admin() {
     <div className="space-y-5">
       <div>
         <h1 className="neon-title text-2xl text-brand-300">Administración</h1>
-        <p className="text-sm text-slate-500">Gestión del catálogo base.</p>
+        <p className="text-sm text-slate-500">Gestión del catálogo base y usuarios.</p>
       </div>
+
+      <Link to="/admin/usuarios" className="card flex items-center justify-between p-4 transition hover:border-brand-400/60 hover:shadow-neon-soft">
+        <div>
+          <p className="font-semibold text-slate-100">Usuarios</p>
+          <p className="text-sm text-slate-400">Ver rutinas y ejercicios que crean.</p>
+        </div>
+        <span className="text-xs font-semibold text-brand-400">Ver</span>
+      </Link>
 
       {/* Seed / status */}
       <div className="card p-5">
