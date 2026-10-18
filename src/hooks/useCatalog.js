@@ -49,6 +49,9 @@ export function CatalogProvider({ children }) {
   const { user } = useAuth()
   const [userExercises, setUserExercises] = useState([])
   const [userRoutines, setUserRoutines] = useState([])
+  // Base catalog lives in Firestore (/catalog). null = not loaded yet.
+  const [baseExercises, setBaseExercises] = useState(null)
+  const [baseRoutines, setBaseRoutines] = useState(null)
   const [activeRoutineIds, setActiveRoutineIds] = useState([ROUTINE_TEMPLATE.id])
   const [loading, setLoading] = useState(true)
 
@@ -106,24 +109,63 @@ export function CatalogProvider({ children }) {
       },
     )
 
+    // Global base catalog (admin-managed). Read-only for normal users.
+    const unsubBaseEx = onSnapshot(
+      collection(db, 'catalog', 'data', 'exercises'),
+      (snap) => {
+        setBaseExercises(snap.docs.map((d) => ({ id: d.id, ...d.data(), isCustom: false })))
+        release()
+      },
+      (err) => {
+        console.error('baseExercises', err)
+        setBaseExercises([]) // fall back to seed
+        release()
+      },
+    )
+
+    const unsubBaseRt = onSnapshot(
+      collection(db, 'catalog', 'data', 'routines'),
+      (snap) => setBaseRoutines(snap.docs.map((d) => ({ id: d.id, ...d.data(), isCustom: false }))),
+      (err) => {
+        console.error('baseRoutines', err)
+        setBaseRoutines([])
+      },
+    )
+
     return () => {
       clearTimeout(releaseTimer)
       unsubExercises()
       unsubRoutines()
       unsubProfile()
+      unsubBaseEx()
+      unsubBaseRt()
     }
   }, [user])
 
+  // Base catalog: Firestore if populated, else the local seed as fallback.
+  const resolvedBaseExercises = useMemo(
+    () => (baseExercises && baseExercises.length > 0 ? baseExercises : EXERCISES.map((e) => ({ ...e, isCustom: false }))),
+    [baseExercises],
+  )
+  const resolvedBaseRoutines = useMemo(
+    () => (baseRoutines && baseRoutines.length > 0 ? baseRoutines : [{ ...ROUTINE_TEMPLATE, isCustom: false }]),
+    [baseRoutines],
+  )
+
   // Merged collections (base + custom)
   const exercises = useMemo(() => {
-    const byId = new Map(EXERCISES.map((e) => [e.id, { ...e, isCustom: false }]))
+    const byId = new Map(resolvedBaseExercises.map((e) => [e.id, e]))
     for (const e of userExercises) byId.set(e.id, e) // custom overrides base
     return [...byId.values()]
-  }, [userExercises])
+  }, [resolvedBaseExercises, userExercises])
 
   const routines = useMemo(
-    () => [{ ...ROUTINE_TEMPLATE, isCustom: false }, ...userRoutines],
-    [userRoutines],
+    () => {
+      const byId = new Map(resolvedBaseRoutines.map((r) => [r.id, r]))
+      for (const r of userRoutines) byId.set(r.id, r)
+      return [...byId.values()]
+    },
+    [resolvedBaseRoutines, userRoutines],
   )
 
   const activeRoutines = useMemo(
@@ -188,6 +230,52 @@ export function CatalogProvider({ children }) {
     [user],
   )
 
+  // ---- admin: base catalog mutations (require admin per Firestore rules) ----
+
+  const saveBaseExercise = useCallback(async (exercise) => {
+    const id = exercise.id || slugify(exercise.name) + '-' + Date.now().toString(36)
+    const { id: _omit, isCustom: _c, ...rest } = exercise
+    await setDoc(
+      doc(db, 'catalog', 'data', 'exercises', id),
+      { ...rest, updatedAt: serverTimestamp() },
+      { merge: true },
+    )
+    return id
+  }, [])
+
+  const deleteBaseExercise = useCallback(async (id) => {
+    await deleteDoc(doc(db, 'catalog', 'data', 'exercises', id))
+  }, [])
+
+  const saveBaseRoutine = useCallback(async (routine) => {
+    const id = routine.id || slugify(routine.name) + '-' + Date.now().toString(36)
+    const { id: _omit, isCustom: _c, ...rest } = routine
+    await setDoc(
+      doc(db, 'catalog', 'data', 'routines', id),
+      { ...rest, isTemplate: true, updatedAt: serverTimestamp() },
+      { merge: true },
+    )
+    return id
+  }, [])
+
+  const deleteBaseRoutine = useCallback(async (id) => {
+    await deleteDoc(doc(db, 'catalog', 'data', 'routines', id))
+  }, [])
+
+  // One-time: populate the global catalog from the local seed data.
+  const seedCatalog = useCallback(async () => {
+    for (const ex of EXERCISES) {
+      const { id, ...rest } = ex
+      await setDoc(doc(db, 'catalog', 'data', 'exercises', id), rest)
+    }
+    const { id: rid, ...routineRest } = ROUTINE_TEMPLATE
+    await setDoc(doc(db, 'catalog', 'data', 'routines', rid), { ...routineRest, isTemplate: true })
+    return { exercises: EXERCISES.length, routines: 1 }
+  }, [])
+
+  // Is the base catalog already in Firestore?
+  const catalogSeeded = (baseExercises?.length ?? 0) > 0
+
   const deleteRoutine = useCallback(
     async (id) => {
       if (!user) throw new Error('No autenticado')
@@ -247,6 +335,13 @@ export function CatalogProvider({ children }) {
     deleteRoutine,
     setActiveRoutine,
     importCatalog,
+    // admin / base catalog
+    catalogSeeded,
+    seedCatalog,
+    saveBaseExercise,
+    deleteBaseExercise,
+    saveBaseRoutine,
+    deleteBaseRoutine,
   }
 
   return createElement(CatalogContext.Provider, { value }, children)

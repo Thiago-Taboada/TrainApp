@@ -2,8 +2,24 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Public catalog: any signed-in user can read exercises & routine
-    // templates. Writes are blocked from the client (seeded via admin/script).
+    // True when the signed-in user has the admin custom claim.
+    function isAdmin() {
+      return request.auth != null && request.auth.token.admin == true;
+    }
+
+    // -----------------------------------------------------------------------
+    // Global base catalog (admin-managed). Lives under /catalog/data/...
+    //   - Any signed-in user can READ it.
+    //   - Only an admin can WRITE it.
+    // -----------------------------------------------------------------------
+    match /catalog/{document=**} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    // -----------------------------------------------------------------------
+    // Legacy top-level catalog (kept read-only; no longer written from client).
+    // -----------------------------------------------------------------------
     match /exercises/{id} {
       allow read: if request.auth != null;
       allow write: if false;
@@ -13,13 +29,30 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Per-user private data. Covers the profile doc (incl. activeRoutineIds)
-    // and all subcollections: logs, exercises (custom), routines (custom),
-    // flexibility. Only the owner can read/write.
+    // -----------------------------------------------------------------------
+    // Per-user data.
+    // -----------------------------------------------------------------------
     match /users/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      // Owner: full access to their profile. Admin: read only (to list users).
+      allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
+      allow write: if request.auth != null && request.auth.uid == uid;
 
-      match /{document=**} {
+      // Content the user creates: owner full access; admin read-only.
+      match /routines/{id} {
+        allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
+        allow write: if request.auth != null && request.auth.uid == uid;
+      }
+      match /exercises/{id} {
+        allow read: if request.auth != null && (request.auth.uid == uid || isAdmin());
+        allow write: if request.auth != null && request.auth.uid == uid;
+      }
+
+      // Personal data (training logs, body weight): ONLY the owner. Admin has
+      // no access — this is private.
+      match /logs/{id} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+      match /weights/{id} {
         allow read, write: if request.auth != null && request.auth.uid == uid;
       }
     }

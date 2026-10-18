@@ -17,6 +17,8 @@ import RoutineEditor from './pages/RoutineEditor.jsx'
 import ExerciseEditor from './pages/ExerciseEditor.jsx'
 import Account from './pages/Account.jsx'
 import WorkoutRunner from './pages/WorkoutRunner.jsx'
+import Admin from './pages/Admin.jsx'
+import AdminExerciseEditor from './pages/AdminExerciseEditor.jsx'
 
 export default function App() {
   const { user, loading, needsEmailVerification } = useAuth()
@@ -52,6 +54,10 @@ export default function App() {
           <Route path="/entrenar/:weekday" element={<WorkoutRunner />} />
           <Route path="/analisis" element={<Analysis />} />
           <Route path="/cuenta" element={<Account />} />
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/admin/ejercicio/nuevo" element={<AdminExerciseEditor />} />
+          <Route path="/admin/ejercicio/:exerciseId" element={<AdminExerciseEditor />} />
+          <Route path="/admin/rutina/:routineId" element={<RoutineEditor admin />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         </Layout>

@@ -22,10 +22,15 @@ function emptyDays() {
   }))
 }
 
-export default function RoutineEditor() {
+export default function RoutineEditor({ admin = false }) {
   const { routineId } = useParams()
   const navigate = useNavigate()
-  const { loading, routines, exercises, saveRoutine, deleteRoutine } = useCatalog()
+  const catalog = useCatalog()
+  const { loading, routines, exercises } = catalog
+  // In admin mode we edit the global base catalog; otherwise the user's own.
+  const saveRoutine = admin ? catalog.saveBaseRoutine : catalog.saveRoutine
+  const deleteRoutine = admin ? catalog.deleteBaseRoutine : catalog.deleteRoutine
+  const backTo = admin ? '/admin' : '/rutinas'
 
   const editing = Boolean(routineId)
   const [name, setName] = useState('')
@@ -59,8 +64,9 @@ export default function RoutineEditor() {
 
   if (loading) return <Spinner />
 
-  // Template routines are read-only: offer to duplicate instead.
-  if (editing && isTemplate) {
+  // Template routines are read-only for normal users: offer to duplicate.
+  // In admin mode the template IS editable, so skip this.
+  if (!admin && editing && isTemplate) {
     return (
       <div className="space-y-5">
         <Link to="/rutinas" className="inline-flex items-center gap-1 text-sm font-semibold text-slate-400 hover:text-brand-300">
@@ -128,7 +134,7 @@ export default function RoutineEditor() {
         description: description.trim(),
         days: cleanDays,
       })
-      navigate('/rutinas')
+      navigate(backTo)
       return id
     } catch (err) {
       console.error(err)
@@ -141,13 +147,13 @@ export default function RoutineEditor() {
   async function handleDelete() {
     if (!confirm('¿Eliminar esta rutina?')) return
     await deleteRoutine(routineId)
-    navigate('/rutinas')
+    navigate(backTo)
   }
 
   return (
     <div className="space-y-5">
-      <Link to="/rutinas" className="inline-flex items-center gap-1 text-sm font-semibold text-slate-400 hover:text-brand-300">
-        <ChevronLeft /> Rutinas
+      <Link to={backTo} className="inline-flex items-center gap-1 text-sm font-semibold text-slate-400 hover:text-brand-300">
+        <ChevronLeft /> {admin ? 'Administración' : 'Rutinas'}
       </Link>
 
       <h1 className="neon-title text-2xl text-brand-300">

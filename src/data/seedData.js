@@ -397,7 +397,7 @@ export const EXERCISES = EXERCISES_RAW.map((ex) => ({
 // perSide: true means the reps are per leg/arm.
 // ---------------------------------------------------------------------------
 export const ROUTINE_TEMPLATE = {
-  id: 'pdf-fuerza-flexibilidad',
+  id: 'default',
   name: 'Fuerza y flexibilidad (patadas altas)',
   description:
     'Plan en casa de fuerza general y movilidad para patadas circulares y laterales altas. Lunes, miércoles y viernes fuerza; martes y jueves flexibilidad.',

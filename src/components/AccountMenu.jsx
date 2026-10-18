@@ -6,7 +6,7 @@ import { useLogs } from '../hooks/useLogs'
 import { exportUserData } from '../lib/exportData'
 
 export default function AccountMenu() {
-  const { user, signOut } = useAuth()
+  const { user, isAdmin, signOut } = useAuth()
   const { exercises, routines, activeRoutineIds } = useCatalog()
   const { logs, weights } = useLogs()
   const navigate = useNavigate()
@@ -95,6 +95,9 @@ export default function AccountMenu() {
             <MenuItem onClick={() => go('/cuenta')} icon={<UserIcon />}>Mi cuenta</MenuItem>
             <MenuItem onClick={() => go('/rutinas')} icon={<ListIcon />}>Rutinas</MenuItem>
             <MenuItem onClick={handleExport} icon={<DownloadIcon />}>Exportar mis datos</MenuItem>
+            {isAdmin && (
+              <MenuItem onClick={() => go('/admin')} icon={<ShieldIcon />}>Administración</MenuItem>
+            )}
           </div>
 
           <div className="border-t border-brand-500/15 p-1.5">
@@ -140,6 +143,14 @@ function ListIcon() {
   return (
     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
       <path strokeLinecap="round" strokeLinejoin="round" d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" />
+    </svg>
+  )
+}
+function ShieldIcon() {
+  return (
+    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4" />
     </svg>
   )
 }
