@@ -16,7 +16,7 @@ export default function ExerciseDetail() {
     return (
       <div className="card p-8 text-center">
         <p className="text-slate-500">{t('exercise.notFound')}</p>
-        <Link to="/biblioteca" className="btn-primary mt-4">
+        <Link to="/library" className="btn-primary mt-4">
           {t('exercise.backToLib')}
         </Link>
       </div>
@@ -52,7 +52,7 @@ export default function ExerciseDetail() {
           <h1 className="neon-title text-2xl text-brand-300">{ex.name}</h1>
           <div className="flex items-center gap-2">
             {ex.isCustom && (
-              <Link to={`/ejercicios/${ex.id}/editar`} className="chip border-slate-500/25 bg-ink-700/60 text-slate-300 hover:border-brand-400/40 hover:text-brand-200">
+              <Link to={`/exercises/${ex.id}/edit`} className="chip border-slate-500/25 bg-ink-700/60 text-slate-300 hover:border-brand-400/40 hover:text-brand-200">
                 {t('exercise.edit')}
               </Link>
             )}

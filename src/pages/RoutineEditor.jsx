@@ -27,7 +27,7 @@ export default function RoutineEditor({ admin = false }) {
   // In admin mode we edit the global base catalog; otherwise the user's own.
   const saveRoutine = admin ? catalog.saveBaseRoutine : catalog.saveRoutine
   const deleteRoutine = admin ? catalog.deleteBaseRoutine : catalog.deleteRoutine
-  const backTo = admin ? '/admin' : '/rutinas'
+  const backTo = admin ? '/admin' : '/routines'
 
   const editing = Boolean(routineId)
   const [name, setName] = useState('')
@@ -65,7 +65,7 @@ export default function RoutineEditor({ admin = false }) {
   if (!admin && !editing) {
     const customCount = routines.filter((r) => r.isCustom).length
     if (customCount >= catalog.routineSlots) {
-      return <Navigate to="/tienda" replace />
+      return <Navigate to="/store" replace />
     }
   }
 
@@ -74,7 +74,7 @@ export default function RoutineEditor({ admin = false }) {
   if (!admin && editing && isTemplate) {
     return (
       <div className="space-y-5">
-        <Link to="/rutinas" className="inline-flex items-center gap-1 text-sm font-semibold text-slate-400 hover:text-brand-300">
+        <Link to="/routines" className="inline-flex items-center gap-1 text-sm font-semibold text-slate-400 hover:text-brand-300">
           <ChevronLeft /> {t('routineEditor.backRoutines')}
         </Link>
         <TemplateView routine={existing} exercises={exercises} navigate={navigate} />
@@ -348,7 +348,7 @@ function TemplateView({ routine, exercises, navigate }) {
       days: (routine.days ?? []).map((d) => ({ ...d, blocks: (d.blocks ?? []).map((b) => ({ ...b })) })),
     }
     const id = await saveRoutine(copy)
-    navigate(`/rutinas/${id}`)
+    navigate(`/routines/${id}`)
   }
   return (
     <div className="space-y-5">

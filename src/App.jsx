@@ -45,25 +45,25 @@ export default function App() {
         <Layout>
         <Routes>
           <Route path="/" element={<Today />} />
-          <Route path="/biblioteca" element={<Library />} />
-          <Route path="/biblioteca/:exerciseId" element={<ExerciseDetail />} />
-          <Route path="/ejercicios/nuevo" element={<ExerciseEditor />} />
-          <Route path="/ejercicios/:exerciseId/editar" element={<ExerciseEditor />} />
-          <Route path="/rutinas" element={<Routines />} />
-          <Route path="/rutinas/nueva" element={<RoutineEditor />} />
-          <Route path="/rutinas/:routineId" element={<RoutineEditor />} />
-          <Route path="/cronograma" element={<Schedule />} />
-          <Route path="/sesion/:weekday" element={<SessionLog />} />
-          <Route path="/entrenar/:weekday" element={<WorkoutRunner />} />
-          <Route path="/analisis" element={<Analysis />} />
-          <Route path="/cuenta" element={<Account />} />
-          <Route path="/tienda" element={<Store />} />
+          <Route path="/library" element={<Library />} />
+          <Route path="/library/:exerciseId" element={<ExerciseDetail />} />
+          <Route path="/exercises/new" element={<ExerciseEditor />} />
+          <Route path="/exercises/:exerciseId/edit" element={<ExerciseEditor />} />
+          <Route path="/routines" element={<Routines />} />
+          <Route path="/routines/new" element={<RoutineEditor />} />
+          <Route path="/routines/:routineId" element={<RoutineEditor />} />
+          <Route path="/schedule" element={<Schedule />} />
+          <Route path="/session/:weekday" element={<SessionLog />} />
+          <Route path="/workout/:weekday" element={<WorkoutRunner />} />
+          <Route path="/analysis" element={<Analysis />} />
+          <Route path="/account" element={<Account />} />
+          <Route path="/store" element={<Store />} />
           <Route path="/admin" element={<Admin />} />
-          <Route path="/admin/ejercicio/nuevo" element={<AdminExerciseEditor />} />
-          <Route path="/admin/ejercicio/:exerciseId" element={<AdminExerciseEditor />} />
-          <Route path="/admin/rutina/:routineId" element={<RoutineEditor admin />} />
-          <Route path="/admin/usuarios" element={<AdminUsers />} />
-          <Route path="/admin/usuarios/:uid" element={<AdminUserDetail />} />
+          <Route path="/admin/exercise/new" element={<AdminExerciseEditor />} />
+          <Route path="/admin/exercise/:exerciseId" element={<AdminExerciseEditor />} />
+          <Route path="/admin/routine/:routineId" element={<RoutineEditor admin />} />
+          <Route path="/admin/users" element={<AdminUsers />} />
+          <Route path="/admin/users/:uid" element={<AdminUserDetail />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         </Layout>

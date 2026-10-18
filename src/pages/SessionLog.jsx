@@ -129,7 +129,7 @@ export default function SessionLog() {
     return (
       <div className="card p-8 text-center">
         <p className="text-slate-500">{t('sessionLog.dayNotFound')}</p>
-        <Link to="/cronograma" className="btn-primary mt-4">{t('sessionLog.backToSchedule')}</Link>
+        <Link to="/schedule" className="btn-primary mt-4">{t('sessionLog.backToSchedule')}</Link>
       </div>
     )
   }
@@ -205,7 +205,7 @@ export default function SessionLog() {
         entries: trained ? cleanEntries : [],
       })
       clearDraft(draftKey)
-      navigate('/cronograma')
+      navigate('/schedule')
     } catch (err) {
       console.error(err)
       alert(t('sessionLog.saveError') + (err?.message ?? t('sessionLog.unknownError')))
@@ -219,12 +219,12 @@ export default function SessionLog() {
     if (!confirm(t('sessionLog.confirmDelete'))) return
     await deleteLog(existing.id)
     clearDraft(draftKey)
-    navigate('/cronograma')
+    navigate('/schedule')
   }
 
   return (
     <div className="space-y-5">
-      <Link to="/cronograma" className="inline-flex items-center gap-1 text-sm font-semibold text-slate-400 hover:text-brand-300">
+      <Link to="/schedule" className="inline-flex items-center gap-1 text-sm font-semibold text-slate-400 hover:text-brand-300">
         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
@@ -352,7 +352,7 @@ function ExerciseEntry({ entry, exercise, block, onUpdateSet, onAddSet, onRemove
     <div className="card p-4">
       <div className="mb-3 flex items-start justify-between gap-2">
         <div>
-          <Link to={`/biblioteca/${entry.exerciseId}`} className="font-semibold text-slate-200 hover:text-brand-300">
+          <Link to={`/library/${entry.exerciseId}`} className="font-semibold text-slate-200 hover:text-brand-300">
             {exercise?.name ?? t('sessionLog.deletedExercise')}
           </Link>
           {block && (

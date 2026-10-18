@@ -95,9 +95,9 @@ export default function AccountMenu() {
 
           {/* Items */}
           <div className="p-1.5">
-            <MenuItem onClick={() => go('/cuenta')} icon={<UserIcon />}>{t('menu.account')}</MenuItem>
-            <MenuItem onClick={() => go('/tienda')} icon={<CoinIcon className="h-5 w-5" />}>{t('menu.store')}</MenuItem>
-            <MenuItem onClick={() => go('/rutinas')} icon={<ListIcon />}>{t('menu.routines')}</MenuItem>
+            <MenuItem onClick={() => go('/account')} icon={<UserIcon />}>{t('menu.account')}</MenuItem>
+            <MenuItem onClick={() => go('/store')} icon={<CoinIcon className="h-5 w-5" />}>{t('menu.store')}</MenuItem>
+            <MenuItem onClick={() => go('/routines')} icon={<ListIcon />}>{t('menu.routines')}</MenuItem>
             <MenuItem onClick={handleExport} icon={<DownloadIcon />}>{t('menu.exportData')}</MenuItem>
             {isAdmin && (
               <MenuItem onClick={() => go('/admin')} icon={<ShieldIcon />}>{t('menu.admin')}</MenuItem>

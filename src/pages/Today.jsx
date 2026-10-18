@@ -53,7 +53,7 @@ export default function Today() {
       {!hasActive && (
         <div className="card border-neon-amber/40 bg-neon-amber/10 p-4 text-sm text-neon-amber">
           {t('today.noActiveRoutines')}{' '}
-          <Link to="/rutinas" className="font-semibold underline">
+          <Link to="/routines" className="font-semibold underline">
             {t('today.activateRoutine')}
           </Link>{' '}
           {t('today.toSeeToday')}
@@ -88,10 +88,10 @@ export default function Today() {
                 )}
               </div>
 
-              <Link to={`/entrenar/${todayKey}`} className="btn-primary mt-5 w-full py-3 text-base">
+              <Link to={`/workout/${todayKey}`} className="btn-primary mt-5 w-full py-3 text-base">
                 <PlayIcon /> {t('today.startWorkout')}
               </Link>
-              <Link to={`/sesion/${todayKey}`} className="btn-ghost mt-2 w-full">
+              <Link to={`/session/${todayKey}`} className="btn-ghost mt-2 w-full">
                 {todayLog ? t('today.editTodayLog') : t('today.registerWorkout')}
               </Link>
               {todayLog?.trained && (
@@ -160,7 +160,7 @@ export default function Today() {
       <div className="card p-4">
         <div className="mb-3 flex items-center justify-between">
           <p className="label">{t('today.yourWeek')}</p>
-          <Link to="/cronograma" className="text-xs font-semibold text-brand-400 hover:text-brand-300">
+          <Link to="/schedule" className="text-xs font-semibold text-brand-400 hover:text-brand-300">
             {t('today.seeAll')}
           </Link>
         </div>
@@ -174,7 +174,7 @@ export default function Today() {
             const isToday = iso === todayISO
             return (
               <Link
-                to={`/sesion/${wk}`}
+                to={`/session/${wk}`}
                 key={iso}
                 className="flex flex-1 flex-col items-center gap-1.5"
               >

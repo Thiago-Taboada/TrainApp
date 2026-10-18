@@ -46,13 +46,13 @@ export default function Routines() {
           <p className="mt-1 text-xs text-slate-400">
             {t('routines.limitDesc', { used: customCount, total: routineSlots })}
           </p>
-          <Link to="/tienda" className="btn-primary mt-3 w-full">
+          <Link to="/store" className="btn-primary mt-3 w-full">
             {t('routines.getMore')}
           </Link>
         </div>
       ) : (
         <div>
-          <Link to="/rutinas/nueva" className="btn-primary w-full">
+          <Link to="/routines/new" className="btn-primary w-full">
             {t('routines.newRoutine')}
           </Link>
           <p className="mt-1.5 text-center text-xs text-slate-500">
@@ -70,7 +70,7 @@ export default function Routines() {
           return (
             <Link
               key={routine.id}
-              to={`/rutinas/${routine.id}`}
+              to={`/routines/${routine.id}`}
               className={`card block p-4 transition hover:border-brand-400/60 hover:shadow-neon-soft ${active ? 'border-brand-400/60 shadow-neon-soft' : ''}`}
             >
               <div className="flex items-start justify-between gap-3">

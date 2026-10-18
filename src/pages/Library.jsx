@@ -46,7 +46,7 @@ export default function Library() {
           <h1 className="neon-title text-2xl text-brand-300">{t('library.title')}</h1>
           <p className="text-sm text-slate-500">{t('library.subtitle')}</p>
         </div>
-        <Link to="/ejercicios/nuevo" className="btn-primary shrink-0 px-3 py-2 text-xs">
+        <Link to="/exercises/new" className="btn-primary shrink-0 px-3 py-2 text-xs">
           {t('library.newExercise')}
         </Link>
       </div>
@@ -105,7 +105,7 @@ export default function Library() {
                 {items.map((ex) => (
                   <Link
                     key={ex.id}
-                    to={`/biblioteca/${ex.id}`}
+                    to={`/library/${ex.id}`}
                     className="card flex flex-col gap-2 p-4 transition hover:border-brand-400/60 hover:shadow-neon-soft"
                   >
                     <div className="flex items-start justify-between gap-2">

@@ -35,7 +35,7 @@ export default function Schedule() {
       {activeRoutines.length === 0 && (
         <div className="card border-neon-amber/40 bg-neon-amber/10 p-4 text-sm text-neon-amber">
           {t('schedule.noActive')}{' '}
-          <Link to="/rutinas" className="font-semibold underline">{t('schedule.activateOne')}</Link> {t('schedule.toSeePlan')}
+          <Link to="/routines" className="font-semibold underline">{t('schedule.activateOne')}</Link> {t('schedule.toSeePlan')}
         </div>
       )}
 
@@ -140,10 +140,10 @@ export default function Schedule() {
                             )
                           })}
                         </ul>
-                        <Link to={`/entrenar/${wk}?date=${iso}`} className="btn-primary mt-4 w-full py-3 text-base">
+                        <Link to={`/workout/${wk}?date=${iso}`} className="btn-primary mt-4 w-full py-3 text-base">
                           <PlayIcon /> {t('schedule.startWorkout')}
                         </Link>
-                        <Link to={`/sesion/${wk}?date=${iso}`} className="btn-ghost mt-2 w-full">
+                        <Link to={`/session/${wk}?date=${iso}`} className="btn-ghost mt-2 w-full">
                           {log?.trained ? t('schedule.editSession') : t('schedule.registerSession')}
                         </Link>
                       </>

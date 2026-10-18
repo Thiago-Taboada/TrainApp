@@ -48,7 +48,7 @@ export default function Admin() {
         <p className="text-sm text-slate-500">{t('admin.subtitle')}</p>
       </div>
 
-      <Link to="/admin/usuarios" className="card flex items-center justify-between p-4 transition hover:border-brand-400/60 hover:shadow-neon-soft">
+      <Link to="/admin/users" className="card flex items-center justify-between p-4 transition hover:border-brand-400/60 hover:shadow-neon-soft">
         <div>
           <p className="font-semibold text-slate-100">{t('admin.users')}</p>
           <p className="text-sm text-slate-400">{t('admin.usersDesc')}</p>
@@ -87,7 +87,7 @@ export default function Admin() {
           {baseRoutines.map((r) => (
             <Link
               key={r.id}
-              to={`/admin/rutina/${r.id}`}
+              to={`/admin/routine/${r.id}`}
               className="card flex items-center justify-between p-4 transition hover:border-brand-400/60 hover:shadow-neon-soft"
             >
               <div>
@@ -109,7 +109,7 @@ export default function Admin() {
           {baseExercises.map((ex) => (
             <Link
               key={ex.id}
-              to={`/admin/ejercicio/${ex.id}`}
+              to={`/admin/exercise/${ex.id}`}
               className="card flex items-center justify-between gap-2 p-3 transition hover:border-brand-400/60"
             >
               <span className="min-w-0">
@@ -120,7 +120,7 @@ export default function Admin() {
             </Link>
           ))}
         </div>
-        <Link to="/admin/ejercicio/nuevo" className="btn-ghost mt-3 w-full">
+        <Link to="/admin/exercise/new" className="btn-ghost mt-3 w-full">
           {t('admin.newBaseExercise')}
         </Link>
       </section>

@@ -78,7 +78,7 @@ export default function ExerciseEditor() {
         description: form.description.trim(),
         cues: splitList(form.cues, '\n'),
       })
-      navigate('/biblioteca')
+      navigate('/library')
     } catch (err) {
       console.error(err)
       alert(t('exerciseEditor.saveError') + (err?.message ?? t('exerciseEditor.saveErrorFallback')))
@@ -90,12 +90,12 @@ export default function ExerciseEditor() {
   async function handleDelete() {
     if (!confirm(t('exerciseEditor.confirmDelete'))) return
     await deleteExercise(exerciseId)
-    navigate('/biblioteca')
+    navigate('/library')
   }
 
   return (
     <div className="space-y-5">
-      <Link to="/biblioteca" className="inline-flex items-center gap-1 text-sm font-semibold text-slate-400 hover:text-brand-300">
+      <Link to="/library" className="inline-flex items-center gap-1 text-sm font-semibold text-slate-400 hover:text-brand-300">
         <ChevronLeft /> {t('exerciseEditor.back')}
       </Link>
 

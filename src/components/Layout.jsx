@@ -4,19 +4,19 @@ import AccountMenu from './AccountMenu.jsx'
 
 const NAV = [
   { to: '/', key: 'today', icon: HomeIcon, end: true },
-  { to: '/biblioteca', key: 'exercises', icon: BookIcon },
-  { to: '/rutinas', key: 'routines', icon: ListIcon },
-  { to: '/cronograma', key: 'schedule', icon: CalendarIcon },
-  { to: '/analisis', key: 'analysis', icon: ChartIcon },
+  { to: '/library', key: 'exercises', icon: BookIcon },
+  { to: '/routines', key: 'routines', icon: ListIcon },
+  { to: '/schedule', key: 'schedule', icon: CalendarIcon },
+  { to: '/analysis', key: 'analysis', icon: ChartIcon },
 ]
 
 // Labels for routes that aren't in the main nav (shown in the header subtitle).
 const EXTRA_LABELS = [
-  { to: '/cuenta', key: 'account' },
-  { to: '/tienda', key: 'store' },
+  { to: '/account', key: 'account' },
+  { to: '/store', key: 'store' },
   { to: '/admin', key: 'admin' },
-  { to: '/sesion', key: 'session' },
-  { to: '/entrenar', key: 'workout' },
+  { to: '/session', key: 'session' },
+  { to: '/workout', key: 'workout' },
 ]
 
 export default function Layout({ children }) {

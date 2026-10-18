@@ -39,7 +39,7 @@ export default function AdminUserDetail() {
 
   return (
     <div className="space-y-5">
-      <Link to="/admin/usuarios" className="inline-flex items-center gap-1 text-sm font-semibold text-slate-400 hover:text-brand-300">
+      <Link to="/admin/users" className="inline-flex items-center gap-1 text-sm font-semibold text-slate-400 hover:text-brand-300">
         <ChevronLeft /> {t('admin.users')}
       </Link>
 

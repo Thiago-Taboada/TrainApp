@@ -203,7 +203,7 @@ export default function Account() {
       <div className="card p-5">
         <div className="flex items-center justify-between">
           <h2 className="font-display font-bold uppercase tracking-wide text-slate-100">{t('account.theme')}</h2>
-          <Link to="/tienda" className="text-xs font-semibold text-brand-400 hover:text-brand-300">
+          <Link to="/store" className="text-xs font-semibold text-brand-400 hover:text-brand-300">
             {t('account.moreThemes')}
           </Link>
         </div>

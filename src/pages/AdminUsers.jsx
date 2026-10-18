@@ -45,7 +45,7 @@ export default function AdminUsers() {
             {users?.map((u) => (
               <Link
                 key={u.uid}
-                to={`/admin/usuarios/${u.uid}`}
+                to={`/admin/users/${u.uid}`}
                 className="card flex items-center gap-3 p-3 transition hover:border-brand-400/60"
               >
                 {u.photoURL ? (

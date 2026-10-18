@@ -145,7 +145,7 @@ export default function WorkoutRunner() {
             {t('runner.completedDetail', { count: steps.length, label: day.label })}
           </p>
           <Link
-            to={`/sesion/${resolvedWeekday}?date=${dateISO}`}
+            to={`/session/${resolvedWeekday}?date=${dateISO}`}
             className="btn-primary mt-5 w-full"
           >
             {t('runner.logDetails')}
