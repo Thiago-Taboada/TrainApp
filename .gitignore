@@ -17,3 +17,8 @@ dev-dist
 .firebase
 firebase-debug.log
 firestore-debug.log
+
+# Service account keys (admin credentials — NEVER commit)
+*serviceAccount*.json
+*-firebase-adminsdk-*.json
+secrets/

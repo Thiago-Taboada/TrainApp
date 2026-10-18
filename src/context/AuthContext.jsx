@@ -82,12 +82,25 @@ function friendlyAuthError(code) {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
+    const unsub = onAuthStateChanged(auth, async (u) => {
       setUser(u)
+      // Read the `admin` custom claim from the token (force refresh so a
+      // freshly-granted claim is picked up without re-login).
+      if (u) {
+        try {
+          const token = await u.getIdTokenResult(true)
+          setIsAdmin(token.claims.admin === true)
+        } catch {
+          setIsAdmin(false)
+        }
+      } else {
+        setIsAdmin(false)
+      }
       setLoading(false)
     })
     return unsub
@@ -272,6 +285,7 @@ export function AuthProvider({ children }) {
 
   const value = {
     user,
+    isAdmin,
     loading,
     error,
     needsEmailVerification,
