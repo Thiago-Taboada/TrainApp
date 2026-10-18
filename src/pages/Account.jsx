@@ -1,17 +1,18 @@
 import { useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useCatalog } from '../hooks/useCatalog'
 import { useLogs } from '../hooks/useLogs'
 import { exportUserData, parseImportFile } from '../lib/exportData'
 import { fromISODate } from '../lib/dates'
 import { computeStreak } from '../lib/streak'
+import { THEMES } from '../lib/themes'
 import Spinner from '../components/Spinner.jsx'
-import { FlameIcon } from '../components/icons.jsx'
+import { FlameIcon, CheckIcon } from '../components/icons.jsx'
 
 export default function Account() {
   const { user, signOut, providerLabel, isPasswordUser, updateDisplayName, deleteAccount, error, clearError } = useAuth()
-  const { exercises, routines, activeRoutines, activeRoutineIds, loading, importCatalog } = useCatalog()
+  const { exercises, routines, activeRoutines, activeRoutineIds, loading, importCatalog, ownedThemes, activeTheme, setTheme } = useCatalog()
   const { logs, weights, loading: logsLoading, importLogsAndWeights } = useLogs()
   const navigate = useNavigate()
 
@@ -193,6 +194,36 @@ export default function Account() {
         <Stat label="Minutos totales" value={stats.totalMinutes} tone="pink" />
         <Stat label="Rutinas activas" value={activeRoutines.length} tone="brand" />
         <Stat label="Ejercicios propios" value={exercises.filter((e) => e.isCustom).length} tone="pink" />
+      </div>
+
+      {/* Theme selector (only themes you own) */}
+      <div className="card p-5">
+        <div className="flex items-center justify-between">
+          <h2 className="font-display font-bold uppercase tracking-wide text-slate-100">Tema</h2>
+          <Link to="/tienda" className="text-xs font-semibold text-brand-400 hover:text-brand-300">
+            Más temas
+          </Link>
+        </div>
+        <div className="mt-3 flex flex-wrap gap-3">
+          {THEMES.filter((t) => ownedThemes.includes(t.id)).map((t) => {
+            const active = t.id === activeTheme
+            return (
+              <button
+                key={t.id}
+                onClick={() => t.id !== activeTheme && setTheme(t.id)}
+                title={t.name}
+                className={`relative h-10 w-10 rounded-full transition ${active ? 'ring-2 ring-offset-2 ring-offset-ink-850' : 'opacity-80 hover:opacity-100'}`}
+                style={{ background: t.swatch, boxShadow: active ? `0 0 14px ${t.swatch}99` : 'none', '--tw-ring-color': t.swatch }}
+              >
+                {active && (
+                  <span className="absolute inset-0 flex items-center justify-center text-ink-950">
+                    <CheckIcon className="h-4 w-4" />
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       {/* Activity summary */}

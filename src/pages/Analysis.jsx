@@ -19,6 +19,7 @@ import { useLogs } from '../hooks/useLogs'
 import { WEEKDAYS } from '../data/seedData'
 import { sessionForDay } from '../lib/sessions'
 import { addDays, fromISODate, startOfWeek, toISODate, weekId } from '../lib/dates'
+import { themeAccent } from '../lib/themes'
 import Spinner from '../components/Spinner.jsx'
 import { ChartIcon } from '../components/icons.jsx'
 
@@ -40,8 +41,9 @@ const TOOLTIP = {
 }
 
 export default function Analysis() {
-  const { exercises, activeRoutines, loading } = useCatalog()
+  const { exercises, activeRoutines, activeTheme, loading } = useCatalog()
   const { logs, weights, loading: logsLoading } = useLogs()
+  const accent = themeAccent(activeTheme)
 
   const plannedPerWeek = WEEKDAYS.filter(
     (w) => sessionForDay(activeRoutines, w.key).sessionType !== 'rest',
@@ -81,12 +83,12 @@ export default function Analysis() {
       <Header />
 
       {/* Wide chart: needs horizontal room */}
-      <BodyWeight weights={weights} logs={trainedLogs} />
+      <BodyWeight weights={weights} logs={trainedLogs} accent={accent} />
 
       {/* Compact charts: two columns on large screens */}
       <div className="grid gap-5 lg:grid-cols-2">
         <ConstancyHeatmap logs={trainedLogs} />
-        <WeeklyAdherence logs={trainedLogs} plannedPerWeek={plannedPerWeek} />
+        <WeeklyAdherence logs={trainedLogs} plannedPerWeek={plannedPerWeek} accent={accent} />
       </div>
 
       {/* Wide chart: time series with selector */}
@@ -96,11 +98,12 @@ export default function Analysis() {
         loggedExerciseIds={loggedExerciseIds}
         activeEx={activeEx}
         onChange={setSelectedEx}
+        accent={accent}
       />
 
       {/* Compact charts: two columns on large screens */}
       <div className="grid gap-5 lg:grid-cols-2">
-        <MuscleVolume logs={trainedLogs} exercises={exercises} />
+        <MuscleVolume logs={trainedLogs} exercises={exercises} accent={accent} />
         <EffortDistribution logs={trainedLogs} />
       </div>
 
@@ -129,7 +132,7 @@ function Section({ title, hint, children }) {
 }
 
 // 0. Body weight over time + weekly sessions (to relate weight to training load)
-function BodyWeight({ weights, logs }) {
+function BodyWeight({ weights, logs, accent }) {
   const sorted = useMemo(
     () => [...weights].sort((a, b) => (a.weekId > b.weekId ? 1 : -1)),
     [weights],
@@ -186,7 +189,7 @@ function BodyWeight({ weights, logs }) {
           <YAxis yAxisId="s" orientation="right" allowDecimals={false} tick={{ fontSize: 11, fill: '#334155' }} stroke="#1c2743" />
           <Tooltip {...TOOLTIP} cursor={{ fill: 'rgba(0,240,255,0.06)' }} />
           <Bar yAxisId="s" dataKey="sesiones" name="Sesiones" fill="#1c2743" radius={[4, 4, 0, 0]} />
-          <Line yAxisId="w" type="monotone" dataKey="peso" name="Peso (kg)" stroke="#00f0ff" strokeWidth={2.5} dot={{ r: 3, fill: '#00f0ff' }} />
+          <Line yAxisId="w" type="monotone" dataKey="peso" name="Peso (kg)" stroke={accent} strokeWidth={2.5} dot={{ r: 3, fill: accent }} />
         </ComposedChart>
       </ResponsiveContainer>
     </Section>
@@ -264,7 +267,7 @@ function Legend({ className, label }) {
 }
 
 // 2. Weekly adherence (sessions per week vs planned)
-function WeeklyAdherence({ logs, plannedPerWeek }) {
+function WeeklyAdherence({ logs, plannedPerWeek, accent }) {
   const planned = plannedPerWeek || 1
 
   const data = useMemo(() => {
@@ -294,7 +297,7 @@ function WeeklyAdherence({ logs, plannedPerWeek }) {
           <Tooltip {...TOOLTIP} cursor={{ fill: 'rgba(0,240,255,0.06)' }} />
           <Bar dataKey="sesiones" radius={[6, 6, 0, 0]}>
             {data.map((d, i) => (
-              <Cell key={i} fill={d.sesiones >= planned ? '#00f0ff' : '#9d4bff'} />
+              <Cell key={i} fill={d.sesiones >= planned ? accent : '#9d4bff'} />
             ))}
           </Bar>
         </BarChart>
@@ -304,7 +307,7 @@ function WeeklyAdherence({ logs, plannedPerWeek }) {
 }
 
 // 3. Exercise evolution (total reps & volume over time)
-function ExerciseEvolution({ logs, exercises, loggedExerciseIds, activeEx, onChange }) {
+function ExerciseEvolution({ logs, exercises, loggedExerciseIds, activeEx, onChange, accent }) {
   const data = useMemo(() => {
     const points = []
     for (const l of [...logs].sort((a, b) => a.date.localeCompare(b.date))) {
@@ -355,7 +358,7 @@ function ExerciseEvolution({ logs, exercises, loggedExerciseIds, activeEx, onCha
             <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#64748b' }} stroke="#2a3761" />
             <YAxis tick={{ fontSize: 11, fill: '#64748b' }} stroke="#2a3761" />
             <Tooltip {...TOOLTIP} />
-            <Line type="monotone" dataKey="reps" name="Reps totales" stroke="#00f0ff" strokeWidth={2.5} dot={{ r: 3, fill: '#00f0ff' }} />
+            <Line type="monotone" dataKey="reps" name="Reps totales" stroke={accent} strokeWidth={2.5} dot={{ r: 3, fill: accent }} />
             {hasWeight && (
               <Line type="monotone" dataKey="volumen" name="Volumen (kg)" stroke="#ff2bd6" strokeWidth={2.5} dot={{ r: 3, fill: '#ff2bd6' }} />
             )}
@@ -367,7 +370,7 @@ function ExerciseEvolution({ logs, exercises, loggedExerciseIds, activeEx, onCha
 }
 
 // 4. Volume by muscle group (balance check)
-function MuscleVolume({ logs, exercises }) {
+function MuscleVolume({ logs, exercises, accent }) {
   const MUSCLE_LABEL = {
     pull: 'Tracción', push: 'Empuje', legs: 'Piernas', shoulders: 'Hombros',
     arms: 'Brazos', core: 'Core', glutes: 'Glúteos', hips: 'Caderas',
@@ -399,7 +402,7 @@ function MuscleVolume({ logs, exercises }) {
           <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: '#64748b' }} stroke="#2a3761" />
           <YAxis type="category" dataKey="grupo" width={70} tick={{ fontSize: 11, fill: '#94a3b8' }} stroke="#2a3761" />
           <Tooltip {...TOOLTIP} cursor={{ fill: 'rgba(0,240,255,0.06)' }} formatter={(v) => [`${v} series`, 'Volumen']} />
-          <Bar dataKey="series" name="Series" fill="#00f0ff" radius={[0, 6, 6, 0]} />
+          <Bar dataKey="series" name="Series" fill={accent} radius={[0, 6, 6, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </Section>

@@ -119,6 +119,11 @@ export function getTheme(id) {
   return THEMES.find((t) => t.id === id) ?? THEMES[0]
 }
 
+// Primary accent hex for a theme id — handy for charts (Recharts needs hex).
+export function themeAccent(id) {
+  return getTheme(id).swatch
+}
+
 // Apply a theme by writing its accent channels onto the document root.
 export function applyTheme(id) {
   const theme = getTheme(id)
