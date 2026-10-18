@@ -81,6 +81,10 @@
     "mobility": "Mobility",
     "rest": "Rest"
   },
+  "sessions": {
+    "noSession": "No session",
+    "rest": "Rest"
+  },
   "today": {
     "hello": "Hi, {{name}}",
     "noActiveRoutines": "You have no active routines.",
@@ -374,7 +378,10 @@
     "notSeeded": "Not loaded",
     "seeding": "Loading…",
     "seedCatalog": "Load base catalog into Firestore",
+    "reseedCatalog": "Update base catalog from code",
+    "reseedHint": "Overwrites the base exercises and routine in Firestore with the current code (e.g. new translations). Does not touch user data.",
     "confirmSeed": "Load the base catalog into Firestore from the sample data?",
+    "confirmReseed": "Overwrite the base catalog in Firestore with the current code? User data is not affected.",
     "seedDone": "Catalog loaded: {{exercises}} exercises and {{routines}} routine.",
     "seedError": "Error: ",
     "seedErrorFallback": "couldn't load",

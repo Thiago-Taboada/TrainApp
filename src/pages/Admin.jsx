@@ -3,10 +3,12 @@ import { Navigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useCatalog } from '../hooks/useCatalog'
+import { localized } from '../lib/i18nContent'
 import Spinner from '../components/Spinner.jsx'
 
 export default function Admin() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language
   const { isAdmin, loading: authLoading } = useAuth()
   const {
     loading,
@@ -28,7 +30,7 @@ export default function Admin() {
   const baseRoutines = routines.filter((r) => !r.isCustom)
 
   async function handleSeed() {
-    if (!confirm(t('admin.confirmSeed'))) return
+    if (!confirm(catalogSeeded ? t('admin.confirmReseed') : t('admin.confirmSeed'))) return
     setSeeding(true)
     setSeedMsg('')
     try {
@@ -70,10 +72,17 @@ export default function Admin() {
           </span>
         </div>
 
-        {!catalogSeeded && (
+        {!catalogSeeded ? (
           <button onClick={handleSeed} disabled={seeding} className="btn-primary mt-4 w-full">
             {seeding ? t('admin.seeding') : t('admin.seedCatalog')}
           </button>
+        ) : (
+          <>
+            <button onClick={handleSeed} disabled={seeding} className="btn-ghost mt-4 w-full">
+              {seeding ? t('admin.seeding') : t('admin.reseedCatalog')}
+            </button>
+            <p className="mt-2 text-xs text-slate-500">{t('admin.reseedHint')}</p>
+          </>
         )}
         {seedMsg && <p className="mt-3 text-sm text-brand-300">{seedMsg}</p>}
       </div>
@@ -91,7 +100,7 @@ export default function Admin() {
               className="card flex items-center justify-between p-4 transition hover:border-brand-400/60 hover:shadow-neon-soft"
             >
               <div>
-                <p className="font-semibold text-slate-100">{r.name}</p>
+                <p className="font-semibold text-slate-100">{localized(r.name, lang)}</p>
                 <p className="text-xs text-slate-400">id: {r.id}</p>
               </div>
               <span className="text-xs font-semibold text-brand-400">{t('admin.edit')}</span>
@@ -113,7 +122,7 @@ export default function Admin() {
               className="card flex items-center justify-between gap-2 p-3 transition hover:border-brand-400/60"
             >
               <span className="min-w-0">
-                <span className="block truncate text-sm font-semibold text-slate-200">{ex.name}</span>
+                <span className="block truncate text-sm font-semibold text-slate-200">{localized(ex.name, lang)}</span>
                 <span className="block text-xs text-slate-500">{t('categories.' + ex.category)}</span>
               </span>
               <span className="shrink-0 text-xs font-semibold text-brand-400">{t('admin.edit')}</span>

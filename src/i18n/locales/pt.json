@@ -81,6 +81,10 @@
     "mobility": "Mobilidade",
     "rest": "Descanso"
   },
+  "sessions": {
+    "noSession": "Sem sessão",
+    "rest": "Descanso"
+  },
   "today": {
     "hello": "Olá, {{name}}",
     "noActiveRoutines": "Você não tem rotinas ativas.",
@@ -374,7 +378,10 @@
     "notSeeded": "Não carregado",
     "seeding": "Carregando…",
     "seedCatalog": "Carregar catálogo base no Firestore",
+    "reseedCatalog": "Atualizar catálogo base pelo código",
+    "reseedHint": "Sobrescreve os exercícios e a rotina base no Firestore com o código atual (ex.: novas traduções). Não altera os dados dos usuários.",
     "confirmSeed": "Carregar o catálogo base no Firestore a partir dos dados de exemplo?",
+    "confirmReseed": "Sobrescrever o catálogo base no Firestore com o código atual? Os dados dos usuários não são afetados.",
     "seedDone": "Catálogo carregado: {{exercises}} exercícios e {{routines}} rotina.",
     "seedError": "Erro: ",
     "seedErrorFallback": "não foi possível carregar",

@@ -1,12 +1,22 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useCatalog } from '../hooks/useCatalog'
 import { SESSION_TYPE_META, WEEKDAYS } from '../data/seedData'
 import { formatRest } from '../lib/sessions'
+import { localized, mergeLang } from '../lib/i18nContent'
 import Spinner from '../components/Spinner.jsx'
 
 const SESSION_TYPE_KEYS = ['strength', 'flexibility', 'mobility', 'rest']
+
+// Trilingual default label per session type (used when a day has no custom
+// label). Keeps the persisted base-catalog label multilingual.
+const DEFAULT_LABELS = {
+  strength: { es: 'Fuerza', en: 'Strength', pt: 'Força' },
+  flexibility: { es: 'Flexibilidad', en: 'Flexibility', pt: 'Flexibilidade' },
+  mobility: { es: 'Movilidad', en: 'Mobility', pt: 'Mobilidade' },
+  rest: { es: 'Descanso', en: 'Rest', pt: 'Descanso' },
+}
 
 function emptyDays() {
   return WEEKDAYS.map((w) => ({
@@ -19,7 +29,8 @@ function emptyDays() {
 }
 
 export default function RoutineEditor({ admin = false }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language
   const { routineId } = useParams()
   const navigate = useNavigate()
   const catalog = useCatalog()
@@ -36,6 +47,9 @@ export default function RoutineEditor({ admin = false }) {
   const [openDay, setOpenDay] = useState('monday')
   const [saving, setSaving] = useState(false)
   const [ready, setReady] = useState(false)
+  // Original routine (full multilingual fields) so save merges the edited
+  // active-language values without dropping other languages.
+  const originalRef = useRef(null)
 
   const existing = useMemo(
     () => routines.find((r) => r.id === routineId),
@@ -46,18 +60,31 @@ export default function RoutineEditor({ admin = false }) {
   useEffect(() => {
     if (loading || ready) return
     if (editing && existing) {
-      setName(existing.name ?? '')
-      setDescription(existing.description ?? '')
-      // normalize to all 7 weekdays
+      originalRef.current = existing
+      setName(localized(existing.name, lang))
+      setDescription(localized(existing.description, lang))
+      // normalize to all 7 weekdays; labels/content shown in the active lang.
+      // We keep the ORIGINAL (multilingual) label/content on `_origLabel` /
+      // `_origContent` so save can merge instead of flattening.
       const base = emptyDays()
       for (const d of existing.days ?? []) {
         const idx = base.findIndex((x) => x.weekday === d.weekday)
-        if (idx >= 0) base[idx] = { ...base[idx], ...d, blocks: d.blocks ?? [] }
+        if (idx >= 0) {
+          base[idx] = {
+            ...base[idx],
+            ...d,
+            label: localized(d.label, lang),
+            content: localized(d.content, lang),
+            _origLabel: d.label,
+            _origContent: d.content,
+            blocks: d.blocks ?? [],
+          }
+        }
       }
       setDays(base)
     }
     setReady(true)
-  }, [loading, ready, editing, existing])
+  }, [loading, ready, editing, existing, lang])
 
   if (loading) return <Spinner />
 
@@ -116,12 +143,21 @@ export default function RoutineEditor({ admin = false }) {
     setSaving(true)
     try {
       // Only persist days that have content or a non-rest type.
-      const cleanDays = days.map((d) => ({
-        weekday: d.weekday,
-        sessionType: d.blocks.length === 0 && d.sessionType !== 'rest' ? d.sessionType : d.sessionType,
-        label: d.label?.trim() || defaultLabel(d.sessionType),
-        content: d.content?.trim() || '',
-        blocks: d.blocks.map((b) => {
+      // label/content keep their multilingual shape: the edited active-language
+      // value is merged into the day's original object; other languages survive.
+      const cleanDays = days.map((d) => {
+        const editedLabel = d.label?.trim()
+        const label = editedLabel
+          ? mergeLang(d._origLabel, editedLabel, lang)
+          : defaultLabel(d.sessionType)
+        const editedContent = d.content?.trim()
+        const content = editedContent ? mergeLang(d._origContent, editedContent, lang) : ''
+        return {
+          weekday: d.weekday,
+          sessionType: d.sessionType,
+          label,
+          content,
+          blocks: d.blocks.map((b) => {
           const restSeconds = Math.max(0, Number(b.restSeconds) || 0)
           return {
             exerciseId: b.exerciseId,
@@ -132,11 +168,13 @@ export default function RoutineEditor({ admin = false }) {
             restText: restSeconds > 0 ? formatRest(restSeconds) : '—',
           }
         }),
-      }))
+        }
+      })
+      const orig = originalRef.current ?? {}
       const id = await saveRoutine({
         id: editing ? routineId : undefined,
-        name: name.trim(),
-        description: description.trim(),
+        name: mergeLang(orig.name, name.trim(), lang),
+        description: mergeLang(orig.description, description.trim(), lang),
         days: cleanDays,
       })
       navigate(backTo)
@@ -238,7 +276,7 @@ export default function RoutineEditor({ admin = false }) {
                           return (
                             <div key={i} className="rounded-xl border border-slate-500/15 bg-ink-900/60 p-3">
                               <div className="mb-2 flex items-center justify-between">
-                                <p className="font-semibold text-sm">{ex?.name ?? t('routineEditor.deletedExercise')}</p>
+                                <p className="font-semibold text-sm">{ex ? localized(ex.name, lang) : t('routineEditor.deletedExercise')}</p>
                                 <button onClick={() => removeBlock(d.weekday, i)} className="text-slate-400 hover:text-red-500">×</button>
                               </div>
                               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -291,7 +329,8 @@ export default function RoutineEditor({ admin = false }) {
 }
 
 function AddExercise({ exercises, onAdd }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language
   const [sel, setSel] = useState('')
   const grouped = useMemo(() => {
     const m = {}
@@ -307,9 +346,9 @@ function AddExercise({ exercises, onAdd }) {
           <optgroup key={cat} label={t('categories.' + cat)}>
             {items
               .slice()
-              .sort((a, b) => a.name.localeCompare(b.name))
+              .sort((a, b) => localized(a.name, lang).localeCompare(localized(b.name, lang)))
               .map((e) => (
-                <option key={e.id} value={e.id}>{e.name}</option>
+                <option key={e.id} value={e.id}>{localized(e.name, lang)}</option>
               ))}
           </optgroup>
         ))}
@@ -339,11 +378,14 @@ function Field({ label, children }) {
 }
 
 function TemplateView({ routine, exercises, navigate }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language
   const { saveRoutine } = useCatalog()
   async function duplicate() {
+    // Preserve the multilingual name, appending the copy suffix on the active
+    // language only; description and days keep their multilingual shape.
     const copy = {
-      name: routine.name + t('routineEditor.copySuffix'),
+      name: mergeLang(routine.name, localized(routine.name, lang) + t('routineEditor.copySuffix'), lang),
       description: routine.description ?? '',
       days: (routine.days ?? []).map((d) => ({ ...d, blocks: (d.blocks ?? []).map((b) => ({ ...b })) })),
     }
@@ -355,8 +397,8 @@ function TemplateView({ routine, exercises, navigate }) {
       <div className="card border-neon-amber/40 bg-neon-amber/10 p-4 text-sm text-neon-amber">
         {t('routineEditor.templateWarning')}
       </div>
-      <h1 className="neon-title text-2xl text-brand-300">{routine.name}</h1>
-      <p className="text-sm text-slate-500">{routine.description}</p>
+      <h1 className="neon-title text-2xl text-brand-300">{localized(routine.name, lang)}</h1>
+      <p className="text-sm text-slate-500">{localized(routine.description, lang)}</p>
       <div className="space-y-3">
         {(routine.days ?? [])
           .filter((d) => d.sessionType !== 'rest')
@@ -366,12 +408,12 @@ function TemplateView({ routine, exercises, navigate }) {
               <div key={d.weekday} className="card p-4">
                 <div className="flex items-center gap-2">
                   <span className={`h-3 w-3 rounded-full ${meta.color}`} />
-                  <p className="font-bold">{t('weekdays.' + d.weekday)} · {d.label}</p>
+                  <p className="font-bold">{t('weekdays.' + d.weekday)} · {localized(d.label, lang)}</p>
                 </div>
                 <ul className="mt-2 space-y-1 text-sm text-slate-300">
                   {d.blocks.map((b, i) => (
                     <li key={i} className="flex justify-between">
-                      <span>{exercises.find((e) => e.id === b.exerciseId)?.name ?? t('routineEditor.deletedExercise')}</span>
+                      <span>{(() => { const ex = exercises.find((e) => e.id === b.exerciseId); return ex ? localized(ex.name, lang) : t('routineEditor.deletedExercise') })()}</span>
                       <span className="font-semibold text-slate-400">{b.sets}×{b.repsText}</span>
                     </li>
                   ))}
@@ -386,7 +428,7 @@ function TemplateView({ routine, exercises, navigate }) {
 }
 
 function defaultLabel(type) {
-  return SESSION_TYPE_META[type]?.label ?? 'Sesión'
+  return DEFAULT_LABELS[type] ?? DEFAULT_LABELS.rest
 }
 
 function ChevronLeft() {

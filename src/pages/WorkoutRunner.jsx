@@ -2,22 +2,23 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useCatalog } from '../hooks/useCatalog'
+import { localized, localizedList } from '../lib/i18nContent'
 import { sessionForDay, metaFor, formatClock } from '../lib/sessions'
 import { toISODate, weekdayKey } from '../lib/dates'
 import Spinner from '../components/Spinner.jsx'
 import { CheckIcon } from '../components/icons.jsx'
 
 // Flattens a day's blocks into a sequential list of sets to guide the user.
-function buildSteps(day, exercises) {
+function buildSteps(day, exercises, lang) {
   const steps = []
   for (const block of day.blocks ?? []) {
     const ex = exercises.find((e) => e.id === block.exerciseId)
     for (let s = 0; s < (block.sets || 1); s++) {
       steps.push({
         exerciseId: block.exerciseId,
-        name: ex?.name ?? '',
-        description: ex?.description ?? '',
-        cues: ex?.cues ?? [],
+        name: ex ? localized(ex.name, lang) : '',
+        description: ex ? localized(ex.description, lang) : '',
+        cues: ex ? localizedList(ex.cues, lang) : [],
         tracking: ex?.tracking ?? 'reps',
         targetSeconds: parseTargetSeconds(block.repsText),
         setNumber: s + 1,
@@ -38,7 +39,7 @@ function parseTargetSeconds(repsText) {
 }
 
 export default function WorkoutRunner() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { weekday } = useParams()
   const [params] = useSearchParams()
   const navigate = useNavigate()
@@ -50,7 +51,7 @@ export default function WorkoutRunner() {
     () => sessionForDay(activeRoutines, resolvedWeekday),
     [activeRoutines, resolvedWeekday],
   )
-  const steps = useMemo(() => buildSteps(day, exercises), [day, exercises])
+  const steps = useMemo(() => buildSteps(day, exercises, i18n.language), [day, exercises, i18n.language])
 
   const [index, setIndex] = useState(0)
   const [resting, setResting] = useState(false)

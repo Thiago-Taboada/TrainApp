@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useCatalog } from '../hooks/useCatalog'
 import { CATEGORIES, MUSCLE_GROUPS } from '../data/seedData'
+import { localized } from '../lib/i18nContent'
 import Spinner from '../components/Spinner.jsx'
 
 const CATEGORY_STYLE = {
@@ -13,7 +14,8 @@ const CATEGORY_STYLE = {
 }
 
 export default function Library() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language
   const { exercises, loading } = useCatalog()
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('all')
@@ -24,10 +26,10 @@ export default function Library() {
     return exercises.filter((ex) => {
       if (category !== 'all' && ex.category !== category) return false
       if (muscle !== 'all' && !(ex.muscleGroups ?? []).includes(muscle)) return false
-      if (term && !ex.name.toLowerCase().includes(term)) return false
+      if (term && !localized(ex.name, lang).toLowerCase().includes(term)) return false
       return true
     })
-  }, [exercises, search, category, muscle])
+  }, [exercises, search, category, muscle, lang])
 
   const grouped = useMemo(() => {
     const map = {}
@@ -110,14 +112,14 @@ export default function Library() {
                   >
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="flex items-center gap-1.5 font-semibold leading-tight">
-                        {ex.name}
+                        {localized(ex.name, lang)}
                         {ex.isCustom && <span className="chip border-neon-purple/40 bg-neon-purple/10 text-neon-purple">{t('library.own')}</span>}
                       </h3>
                       <span className={`chip ${CATEGORY_STYLE[ex.category] ?? 'bg-ink-700 text-slate-400'}`}>
                         {t('categories.' + ex.category)}
                       </span>
                     </div>
-                    <p className="line-clamp-2 text-sm text-slate-500">{ex.description}</p>
+                    <p className="line-clamp-2 text-sm text-slate-500">{localized(ex.description, lang)}</p>
                     <div className="mt-1 flex flex-wrap gap-1.5">
                       {(ex.muscleGroups ?? []).map((m) => (
                         <span key={m} className="chip border-slate-500/20 bg-ink-700/60 text-slate-400">

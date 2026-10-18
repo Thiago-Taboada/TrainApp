@@ -15,7 +15,7 @@ import { FlameIcon, CheckIcon } from '../components/icons.jsx'
 export default function Account() {
   const { user, signOut, providerLabel, isPasswordUser, updateDisplayName, deleteAccount, error, clearError } = useAuth()
   const { t, i18n } = useTranslation()
-  const { exercises, routines, activeRoutines, activeRoutineIds, loading, importCatalog, ownedThemes, activeTheme, setTheme } = useCatalog()
+  const { exercises, routines, activeRoutines, activeRoutineIds, loading, importCatalog, ownedThemes, activeTheme, setTheme, setLang } = useCatalog()
   const { logs, weights, loading: logsLoading, importLogsAndWeights } = useLogs()
   const navigate = useNavigate()
 
@@ -238,7 +238,7 @@ export default function Account() {
             return (
               <button
                 key={lng.code}
-                onClick={() => i18n.changeLanguage(lng.code)}
+                onClick={() => { i18n.changeLanguage(lng.code); setLang(lng.code) }}
                 className={`chip border px-3 py-1.5 ${
                   active
                     ? 'border-brand-400 bg-brand-500/15 text-brand-300'

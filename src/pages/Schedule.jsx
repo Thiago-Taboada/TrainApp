@@ -3,13 +3,15 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useCatalog } from '../hooks/useCatalog'
 import { useLogs } from '../hooks/useLogs'
+import { localized } from '../lib/i18nContent'
 import { CheckIcon, PlayIcon } from '../components/icons.jsx'
 import { sessionForDay, metaFor } from '../lib/sessions'
 import { addDays, startOfWeek, toISODate, weekDates, weekdayKey, formatShort } from '../lib/dates'
 import Spinner from '../components/Spinner.jsx'
 
 export default function Schedule() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language
   const { activeRoutines, exercises, loading } = useCatalog()
   const { logs, loading: logsLoading } = useLogs()
   const [weekOffset, setWeekOffset] = useState(0)
@@ -131,7 +133,7 @@ export default function Schedule() {
                             const ex = exercises.find((e) => e.id === b.exerciseId)
                             return (
                               <li key={i} className="flex items-center justify-between text-sm">
-                                <span className="text-slate-300">{ex?.name ?? '[Ejercicio eliminado]'}</span>
+                                <span className="text-slate-300">{ex ? localized(ex.name, lang) : t('sessionLog.deletedExercise')}</span>
                                 <span className="font-mono font-semibold text-brand-300">
                                   {b.sets}×{b.repsText}
                                   {b.perSide ? ' ' + t('schedule.perSide') : ''}

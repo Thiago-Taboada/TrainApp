@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useCatalog } from '../hooks/useCatalog'
 import { useLogs } from '../hooks/useLogs'
+import { localized } from '../lib/i18nContent'
 import { sessionForDay, metaFor } from '../lib/sessions'
 import { formatLong, fromISODate, toISODate } from '../lib/dates'
 import Spinner from '../components/Spinner.jsx'
@@ -345,7 +346,7 @@ export default function SessionLog() {
 // Renders one exercise with its set rows, adapted to the exercise's tracking
 // type: reps (reps + optional weight), time (seconds), or check (done toggle).
 function ExerciseEntry({ entry, exercise, block, onUpdateSet, onAddSet, onRemoveSet }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const tracking = exercise?.tracking ?? 'reps'
 
   return (
@@ -353,7 +354,7 @@ function ExerciseEntry({ entry, exercise, block, onUpdateSet, onAddSet, onRemove
       <div className="mb-3 flex items-start justify-between gap-2">
         <div>
           <Link to={`/library/${entry.exerciseId}`} className="font-semibold text-slate-200 hover:text-brand-300">
-            {exercise?.name ?? t('sessionLog.deletedExercise')}
+            {exercise ? localized(exercise.name, i18n.language) : t('sessionLog.deletedExercise')}
           </Link>
           {block && (
             <p className="text-xs text-slate-400">

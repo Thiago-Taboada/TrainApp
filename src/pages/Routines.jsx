@@ -2,10 +2,12 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useCatalog } from '../hooks/useCatalog'
 import { SESSION_TYPE_META } from '../data/seedData'
+import { localized } from '../lib/i18nContent'
 import Spinner from '../components/Spinner.jsx'
 
 export default function Routines() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language
   const {
     loading,
     routines,
@@ -24,7 +26,7 @@ export default function Routines() {
     e.preventDefault()
     e.stopPropagation()
     if (routine.isTemplate) return
-    if (!confirm(t('routines.confirmDelete', { name: routine.name }))) return
+    if (!confirm(t('routines.confirmDelete', { name: localized(routine.name, lang) }))) return
     await deleteRoutine(routine.id)
   }
 
@@ -76,14 +78,14 @@ export default function Routines() {
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h2 className="font-bold">{routine.name}</h2>
+                    <h2 className="font-bold">{localized(routine.name, lang)}</h2>
                     {routine.isTemplate && (
                       <span className="chip border-slate-500/30 bg-ink-700/60 text-slate-400">{t('routines.template')}</span>
                     )}
                     {active && <span className="chip border-brand-400/50 bg-brand-500/15 text-brand-300 neon-text">{t('routines.active')}</span>}
                   </div>
                   {routine.description && (
-                    <p className="mt-1 line-clamp-2 text-sm text-slate-500">{routine.description}</p>
+                    <p className="mt-1 line-clamp-2 text-sm text-slate-500">{localized(routine.description, lang)}</p>
                   )}
                 </div>
 

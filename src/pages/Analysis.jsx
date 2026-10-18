@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next'
 import { useCatalog } from '../hooks/useCatalog'
 import { useLogs } from '../hooks/useLogs'
 import { WEEKDAYS } from '../data/seedData'
+import { localized } from '../lib/i18nContent'
 import { sessionForDay } from '../lib/sessions'
 import { addDays, fromISODate, startOfWeek, toISODate, weekId, formatShort } from '../lib/dates'
 import { themeAccent } from '../lib/themes'
@@ -314,7 +315,7 @@ function WeeklyAdherence({ logs, plannedPerWeek, accent }) {
 
 // 3. Exercise evolution (total reps & volume over time)
 function ExerciseEvolution({ logs, exercises, loggedExerciseIds, activeEx, onChange, accent }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const data = useMemo(() => {
     const points = []
     for (const l of [...logs].sort((a, b) => a.date.localeCompare(b.date))) {
@@ -351,7 +352,7 @@ function ExerciseEvolution({ logs, exercises, loggedExerciseIds, activeEx, onCha
       >
         {loggedExerciseIds.map((id) => (
           <option key={id} value={id}>
-            {exercises.find((e) => e.id === id)?.name ?? id}
+            {localized(exercises.find((e) => e.id === id)?.name, i18n.language) || id}
           </option>
         ))}
       </select>

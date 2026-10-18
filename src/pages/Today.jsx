@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useCatalog } from '../hooks/useCatalog'
 import { useLogs } from '../hooks/useLogs'
+import { localized } from '../lib/i18nContent'
 import { useAuth } from '../context/AuthContext.jsx'
 import { CheckIcon, RestIcon, PlayIcon, FlameIcon, CoinIcon } from '../components/icons.jsx'
 import { WEEKDAYS } from '../data/seedData'
@@ -14,7 +15,8 @@ import WeightReminder from '../components/WeightReminder.jsx'
 
 export default function Today() {
   const { user } = useAuth()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language
   const { exercises, activeRoutines, pointsSpent, loading } = useCatalog()
   const { logs, loading: logsLoading } = useLogs()
 
@@ -76,7 +78,7 @@ export default function Today() {
                   const ex = exercises.find((e) => e.id === b.exerciseId)
                   return (
                     <div key={i} className="flex items-center justify-between text-sm">
-                      <span className="text-slate-300">{ex?.name ?? '[Ejercicio eliminado]'}</span>
+                      <span className="text-slate-300">{ex ? localized(ex.name, lang) : t('sessionLog.deletedExercise')}</span>
                       <span className="font-mono font-semibold text-brand-300">
                         {b.sets}×{b.repsText}
                       </span>

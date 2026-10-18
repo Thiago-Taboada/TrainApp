@@ -21,6 +21,8 @@ import { createElement } from 'react'
 import { db } from '../lib/firebase'
 import { useAuth } from '../context/AuthContext.jsx'
 import { EXERCISES, ROUTINE_TEMPLATE } from '../data/seedData'
+import { localized } from '../lib/i18nContent'
+import i18n from '../i18n'
 import { BASE_ROUTINE_SLOTS } from '../lib/points'
 import { applyTheme, DEFAULT_THEME } from '../lib/themes'
 
@@ -183,7 +185,7 @@ export function CatalogProvider({ children }) {
   const saveExercise = useCallback(
     async (exercise) => {
       if (!user) throw new Error('No autenticado')
-      const id = exercise.id || slugify(exercise.name) + '-' + Date.now().toString(36)
+      const id = exercise.id || slugify(localized(exercise.name)) + '-' + Date.now().toString(36)
       const { id: _omit, isCustom: _c, ...rest } = exercise
       await setDoc(
         doc(db, 'users', user.uid, 'exercises', id),
@@ -206,7 +208,7 @@ export function CatalogProvider({ children }) {
   const saveRoutine = useCallback(
     async (routine) => {
       if (!user) throw new Error('No autenticado')
-      const id = routine.id || slugify(routine.name) + '-' + Date.now().toString(36)
+      const id = routine.id || slugify(localized(routine.name)) + '-' + Date.now().toString(36)
       const { id: _omit, isCustom: _c, ...rest } = routine
       await setDoc(
         doc(db, 'users', user.uid, 'routines', id),
@@ -274,6 +276,30 @@ export function CatalogProvider({ children }) {
     [user],
   )
 
+  // Persist the preferred language on the profile (mirrors setTheme). Changing
+  // the i18n language for instant feedback is done by the caller.
+  const setLang = useCallback(
+    async (lang) => {
+      if (!user) return
+      await setDoc(
+        doc(db, 'users', user.uid),
+        { lang, updatedAt: serverTimestamp() },
+        { merge: true },
+      )
+    },
+    [user],
+  )
+
+  // Apply the stored language preference on load: if the profile has a `lang`
+  // and it differs from the active i18n language, switch to it. The stored
+  // preference wins over the localStorage/navigator detection on login.
+  useEffect(() => {
+    const lang = profile?.lang
+    if (lang && i18n.language?.split('-')[0] !== lang) {
+      i18n.changeLanguage(lang)
+    }
+  }, [profile?.lang])
+
   // Buy a routine slot: spend points and raise the slot limit by 1 (atomic-ish
   // merge write). The caller checks affordability.
   const buyRoutineSlot = useCallback(
@@ -295,7 +321,7 @@ export function CatalogProvider({ children }) {
   // ---- admin: base catalog mutations (require admin per Firestore rules) ----
 
   const saveBaseExercise = useCallback(async (exercise) => {
-    const id = exercise.id || slugify(exercise.name) + '-' + Date.now().toString(36)
+    const id = exercise.id || slugify(localized(exercise.name)) + '-' + Date.now().toString(36)
     const { id: _omit, isCustom: _c, ...rest } = exercise
     await setDoc(
       doc(db, 'catalog', 'data', 'exercises', id),
@@ -310,7 +336,7 @@ export function CatalogProvider({ children }) {
   }, [])
 
   const saveBaseRoutine = useCallback(async (routine) => {
-    const id = routine.id || slugify(routine.name) + '-' + Date.now().toString(36)
+    const id = routine.id || slugify(localized(routine.name)) + '-' + Date.now().toString(36)
     const { id: _omit, isCustom: _c, ...rest } = routine
     await setDoc(
       doc(db, 'catalog', 'data', 'routines', id),
@@ -405,6 +431,9 @@ export function CatalogProvider({ children }) {
     activeTheme,
     buyTheme,
     setTheme,
+    // language preference
+    lang: profile?.lang ?? null,
+    setLang,
     // admin / base catalog
     catalogSeeded,
     seedCatalog,

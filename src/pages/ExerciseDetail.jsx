@@ -1,10 +1,12 @@
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useCatalog } from '../hooks/useCatalog'
+import { localized, localizedList } from '../lib/i18nContent'
 import Spinner from '../components/Spinner.jsx'
 
 export default function ExerciseDetail() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language
   const { exerciseId } = useParams()
   const navigate = useNavigate()
   const { exercises, routines, loading } = useCatalog()
@@ -49,7 +51,7 @@ export default function ExerciseDetail() {
 
       <div className="card p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <h1 className="neon-title text-2xl text-brand-300">{ex.name}</h1>
+          <h1 className="neon-title text-2xl text-brand-300">{localized(ex.name, lang)}</h1>
           <div className="flex items-center gap-2">
             {ex.isCustom && (
               <Link to={`/exercises/${ex.id}/edit`} className="chip border-slate-500/25 bg-ink-700/60 text-slate-300 hover:border-brand-400/40 hover:text-brand-200">
@@ -66,24 +68,24 @@ export default function ExerciseDetail() {
             </span>
           ))}
         </div>
-        {ex.equipment?.length > 0 && (
+        {localizedList(ex.equipment, lang).length > 0 && (
           <p className="mt-3 text-sm text-slate-400">
-            <span className="font-semibold text-slate-300">{t('exercise.equipment')}</span> {ex.equipment.join(', ')}
+            <span className="font-semibold text-slate-300">{t('exercise.equipment')}</span> {localizedList(ex.equipment, lang).join(', ')}
           </p>
         )}
         {ex.focus && (
           <p className="mt-1 text-sm text-slate-400">
-            <span className="font-semibold text-slate-300">{t('exercise.focus')}</span> {ex.focus}
+            <span className="font-semibold text-slate-300">{t('exercise.focus')}</span> {localized(ex.focus, lang)}
           </p>
         )}
       </div>
 
       <div className="card p-5">
         <h2 className="mb-2 text-sm font-bold uppercase tracking-wide text-slate-400">{t('exercise.executionGuide')}</h2>
-        <p className="text-slate-300">{ex.description}</p>
-        {ex.cues?.length > 0 && (
+        <p className="text-slate-300">{localized(ex.description, lang)}</p>
+        {localizedList(ex.cues, lang).length > 0 && (
           <ul className="mt-4 space-y-2">
-            {ex.cues.map((cue, i) => (
+            {localizedList(ex.cues, lang).map((cue, i) => (
               <li key={i} className="flex items-start gap-2 text-sm text-slate-400">
                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-400 shadow-neon" />
                 {cue}
@@ -104,7 +106,7 @@ export default function ExerciseDetail() {
                 <div key={i} className="flex items-center justify-between rounded-xl border border-slate-500/15 bg-ink-900/60 px-4 py-3">
                   <div>
                     <p className="font-semibold text-slate-200">{t('weekdays.' + day.weekday)}</p>
-                    <p className="text-xs text-slate-400">{routine.name} · {day.label}</p>
+                    <p className="text-xs text-slate-400">{localized(routine.name, lang)} · {localized(day.label, lang)}</p>
                   </div>
                   <div className="text-right">
                     <p className="font-mono font-bold text-brand-300">

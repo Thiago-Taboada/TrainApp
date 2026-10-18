@@ -5,10 +5,12 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { useCatalog } from '../hooks/useCatalog'
 import { fetchUserContent, fetchUsers } from '../lib/adminData'
 import { SESSION_TYPE_META } from '../data/seedData'
+import { localized } from '../lib/i18nContent'
 import Spinner from '../components/Spinner.jsx'
 
 export default function AdminUserDetail() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language
   const { uid } = useParams()
   const { isAdmin, loading: authLoading } = useAuth()
   const { exercises: baseExercises } = useCatalog()
@@ -29,10 +31,10 @@ export default function AdminUserDetail() {
   // Resolve exercise names: base catalog + this user's custom exercises.
   const nameById = useMemo(() => {
     const m = new Map()
-    for (const e of baseExercises) m.set(e.id, e.name)
-    for (const e of data?.exercises ?? []) m.set(e.id, e.name)
+    for (const e of baseExercises) m.set(e.id, localized(e.name, lang))
+    for (const e of data?.exercises ?? []) m.set(e.id, localized(e.name, lang))
     return m
-  }, [baseExercises, data])
+  }, [baseExercises, data, lang])
 
   if (authLoading) return <Spinner />
   if (!isAdmin) return <Navigate to="/" replace />
@@ -67,8 +69,8 @@ export default function AdminUserDetail() {
               <div className="space-y-3">
                 {data?.routines.map((r) => (
                   <div key={r.id} className="card p-4">
-                    <p className="font-semibold text-slate-100">{r.name}</p>
-                    {r.description && <p className="mt-0.5 text-xs text-slate-400">{r.description}</p>}
+                    <p className="font-semibold text-slate-100">{localized(r.name, lang)}</p>
+                    {r.description && <p className="mt-0.5 text-xs text-slate-400">{localized(r.description, lang)}</p>}
                     <div className="mt-3 space-y-2">
                       {(r.days ?? [])
                         .filter((d) => d.sessionType !== 'rest' && (d.blocks?.length ?? 0) > 0)
@@ -78,7 +80,7 @@ export default function AdminUserDetail() {
                             <div key={d.weekday} className="rounded-lg border border-slate-500/15 bg-ink-900/60 p-3">
                               <div className="flex items-center gap-2">
                                 <span className={`h-2.5 w-2.5 rounded-full ${meta.color}`} />
-                                <p className="text-sm font-semibold text-slate-200">{t('weekdays.' + d.weekday)} · {d.label}</p>
+                                <p className="text-sm font-semibold text-slate-200">{t('weekdays.' + d.weekday)} · {localized(d.label, lang)}</p>
                               </div>
                               <ul className="mt-1.5 space-y-1 text-sm text-slate-400">
                                 {(d.blocks ?? []).map((b, i) => (
@@ -109,9 +111,9 @@ export default function AdminUserDetail() {
               <div className="grid gap-2 sm:grid-cols-2">
                 {data?.exercises.map((ex) => (
                   <div key={ex.id} className="card p-3">
-                    <p className="text-sm font-semibold text-slate-200">{ex.name}</p>
+                    <p className="text-sm font-semibold text-slate-200">{localized(ex.name, lang)}</p>
                     <p className="text-xs text-slate-500">{t('categories.' + ex.category)}</p>
-                    {ex.description && <p className="mt-1 line-clamp-2 text-xs text-slate-400">{ex.description}</p>}
+                    {ex.description && <p className="mt-1 line-clamp-2 text-xs text-slate-400">{localized(ex.description, lang)}</p>}
                   </div>
                 ))}
               </div>

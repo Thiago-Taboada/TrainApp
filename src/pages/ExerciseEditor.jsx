@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useCatalog } from '../hooks/useCatalog'
 import { CATEGORIES, MUSCLE_GROUPS, TRACKING_TYPES } from '../data/seedData'
+import { localized, localizedList, mergeLang, mergeLangList } from '../lib/i18nContent'
 import Spinner from '../components/Spinner.jsx'
 
 const EMPTY = {
@@ -16,13 +17,17 @@ const EMPTY = {
 }
 
 export default function ExerciseEditor() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language
   const { exerciseId } = useParams()
   const navigate = useNavigate()
   const { loading, exercises, saveExercise, deleteExercise } = useCatalog()
   const [form, setForm] = useState(EMPTY)
   const [saving, setSaving] = useState(false)
   const [ready, setReady] = useState(false)
+  // Original exercise (with its full multilingual fields) so save can merge the
+  // edited active-language values back without dropping other languages.
+  const originalRef = useRef(null)
 
   const editing = Boolean(exerciseId)
 
@@ -31,21 +36,22 @@ export default function ExerciseEditor() {
     if (editing) {
       const ex = exercises.find((e) => e.id === exerciseId)
       if (ex) {
+        originalRef.current = ex
         setForm({
-          name: ex.name ?? '',
+          name: localized(ex.name, lang),
           category: ex.category ?? 'strength',
           tracking: ex.tracking ?? 'reps',
           muscleGroups: ex.muscleGroups ?? [],
-          equipment: (ex.equipment ?? []).join(', '),
-          description: ex.description ?? '',
-          cues: (ex.cues ?? []).join('\n'),
+          equipment: localizedList(ex.equipment, lang).join(', '),
+          description: localized(ex.description, lang),
+          cues: localizedList(ex.cues, lang).join('\n'),
           id: ex.id,
           isCustom: ex.isCustom,
         })
       }
     }
     setReady(true)
-  }, [loading, ready, editing, exerciseId, exercises])
+  }, [loading, ready, editing, exerciseId, exercises, lang])
 
   if (loading) return <Spinner />
 
@@ -68,15 +74,16 @@ export default function ExerciseEditor() {
     }
     setSaving(true)
     try {
+      const orig = originalRef.current ?? {}
       await saveExercise({
         id: editing ? exerciseId : undefined,
-        name: form.name.trim(),
+        name: mergeLang(orig.name, form.name.trim(), lang),
         category: form.category,
         tracking: form.tracking,
         muscleGroups: form.muscleGroups,
-        equipment: splitList(form.equipment, ','),
-        description: form.description.trim(),
-        cues: splitList(form.cues, '\n'),
+        equipment: mergeLangList(orig.equipment, splitList(form.equipment, ','), lang),
+        description: mergeLang(orig.description, form.description.trim(), lang),
+        cues: mergeLangList(orig.cues, splitList(form.cues, '\n'), lang),
       })
       navigate('/library')
     } catch (err) {

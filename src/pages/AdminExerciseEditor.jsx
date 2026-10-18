@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useCatalog } from '../hooks/useCatalog'
 import { CATEGORIES, MUSCLE_GROUPS, TRACKING_TYPES } from '../data/seedData'
+import { localized, localizedList, mergeLang, mergeLangList } from '../lib/i18nContent'
 import Spinner from '../components/Spinner.jsx'
 
 const EMPTY = {
@@ -17,7 +18,8 @@ const EMPTY = {
 }
 
 export default function AdminExerciseEditor() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language
   const { exerciseId } = useParams()
   const navigate = useNavigate()
   const { isAdmin, loading: authLoading } = useAuth()
@@ -25,6 +27,7 @@ export default function AdminExerciseEditor() {
   const [form, setForm] = useState(EMPTY)
   const [saving, setSaving] = useState(false)
   const [ready, setReady] = useState(false)
+  const originalRef = useRef(null)
 
   const editing = Boolean(exerciseId)
 
@@ -33,20 +36,21 @@ export default function AdminExerciseEditor() {
     if (editing) {
       const ex = exercises.find((e) => e.id === exerciseId)
       if (ex) {
+        originalRef.current = ex
         setForm({
-          name: ex.name ?? '',
+          name: localized(ex.name, lang),
           category: ex.category ?? 'strength',
           tracking: ex.tracking ?? 'reps',
           muscleGroups: ex.muscleGroups ?? [],
-          equipment: (ex.equipment ?? []).join(', '),
-          description: ex.description ?? '',
-          cues: (ex.cues ?? []).join('\n'),
+          equipment: localizedList(ex.equipment, lang).join(', '),
+          description: localized(ex.description, lang),
+          cues: localizedList(ex.cues, lang).join('\n'),
           id: ex.id,
         })
       }
     }
     setReady(true)
-  }, [loading, ready, editing, exerciseId, exercises])
+  }, [loading, ready, editing, exerciseId, exercises, lang])
 
   if (authLoading || loading) return <Spinner />
   if (!isAdmin) return <Navigate to="/" replace />
@@ -67,15 +71,16 @@ export default function AdminExerciseEditor() {
     }
     setSaving(true)
     try {
+      const orig = originalRef.current ?? {}
       await saveBaseExercise({
         id: editing ? exerciseId : undefined,
-        name: form.name.trim(),
+        name: mergeLang(orig.name, form.name.trim(), lang),
         category: form.category,
         tracking: form.tracking,
         muscleGroups: form.muscleGroups,
-        equipment: splitList(form.equipment, ','),
-        description: form.description.trim(),
-        cues: splitList(form.cues, '\n'),
+        equipment: mergeLangList(orig.equipment, splitList(form.equipment, ','), lang),
+        description: mergeLang(orig.description, form.description.trim(), lang),
+        cues: mergeLangList(orig.cues, splitList(form.cues, '\n'), lang),
       })
       navigate('/admin')
     } catch (err) {

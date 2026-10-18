@@ -49,13 +49,15 @@ async function run() {
   console.log(`Seeding ${EXERCISES.length} exercises + 1 routine template…`)
   const batch = writeBatch(db)
 
+  // Base catalog lives at catalog/data/exercises/{id} and catalog/data/routines/{id}
+  // (matches the live app + Firestore rules, which only allow admin writes there).
   for (const ex of EXERCISES) {
     const { id, ...rest } = ex
-    batch.set(doc(db, 'exercises', id), rest)
+    batch.set(doc(db, 'catalog', 'data', 'exercises', id), rest)
   }
 
   const { id: routineId, ...routineRest } = ROUTINE_TEMPLATE
-  batch.set(doc(db, 'routines', routineId), routineRest)
+  batch.set(doc(db, 'catalog', 'data', 'routines', routineId), { ...routineRest, isTemplate: true })
 
   await batch.commit()
   console.log('✅ Seed completo.')

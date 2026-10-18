@@ -3,6 +3,8 @@
 // day definitions so the schedule shows everything planned that day.
 
 import { SESSION_TYPE_META } from '../data/seedData'
+import i18n from '../i18n'
+import { localized } from './i18nContent'
 
 // Priority to decide the dominant session type / color when several routines
 // land on the same weekday.
@@ -18,15 +20,17 @@ export function sessionForDay(activeRoutines, weekday) {
     parts.push({ routine, day })
   }
 
+  const lang = i18n.language
+
   if (parts.length === 0) {
-    return { weekday, label: 'Sin sesión', content: '', sessionType: 'rest', blocks: [], routineNames: [] }
+    return { weekday, label: i18n.t('sessions.noSession'), content: '', sessionType: 'rest', blocks: [], routineNames: [] }
   }
 
-  // Blocks tagged with their routine
+  // Blocks tagged with their routine (routineName localized to a string)
   const blocks = []
   for (const { routine, day } of parts) {
     for (const b of day.blocks ?? []) {
-      blocks.push({ ...b, routineId: routine.id, routineName: routine.name })
+      blocks.push({ ...b, routineId: routine.id, routineName: localized(routine.name, lang) })
     }
   }
 
@@ -35,26 +39,26 @@ export function sessionForDay(activeRoutines, weekday) {
   const sessionType =
     TYPE_PRIORITY.find((t) => types.includes(t)) ?? parts[0].day.sessionType
 
-  // Labels: if single routine use its own label; else combine
+  // Labels: if single routine use its own label; else combine (localized)
   const label =
     parts.length === 1
-      ? parts[0].day.label
-      : parts.map((p) => p.day.label).join(' + ')
+      ? localized(parts[0].day.label, lang)
+      : parts.map((p) => localized(p.day.label, lang)).join(' + ')
   const content =
     parts.length === 1
-      ? parts[0].day.content
-      : parts.map((p) => `${p.routine.name}: ${p.day.content}`).join(' · ')
+      ? localized(parts[0].day.content, lang)
+      : parts.map((p) => `${localized(p.routine.name, lang)}: ${localized(p.day.content, lang)}`).join(' · ')
 
   // If every active routine marks this as rest, it's a rest day.
   const allRest = parts.every((p) => p.day.sessionType === 'rest')
 
   return {
     weekday,
-    label: allRest ? 'Descanso' : label,
+    label: allRest ? i18n.t('sessions.rest') : label,
     content,
     sessionType: allRest ? 'rest' : sessionType,
     blocks: allRest ? [] : blocks,
-    routineNames: parts.map((p) => p.routine.name),
+    routineNames: parts.map((p) => localized(p.routine.name, lang)),
   }
 }
 
