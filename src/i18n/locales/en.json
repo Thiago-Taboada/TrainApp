@@ -221,7 +221,13 @@
     "delete": "Delete",
     "confirmDelete": "Delete the routine \"{{name}}\"?",
     "daysCount_one": "{{count}} day",
-    "daysCount_other": "{{count}} days"
+    "daysCount_other": "{{count}} days",
+    "mine": "My routines",
+    "catalog": "Catalog",
+    "noneOwn": "You haven't created any routines yet.",
+    "search": "Search routine…",
+    "allAreas": "All areas",
+    "noneFound": "No routines found."
   },
   "menu": {
     "account": "My account",
@@ -388,6 +394,7 @@
     "baseRoutines": "Base routines ({{count}})",
     "baseExercises": "Base exercises ({{count}})",
     "newBaseExercise": "+ New base exercise",
+    "newBaseRoutine": "+ New base routine",
     "usersSubtitle": "Routines and exercises each user creates (no personal data).",
     "loadUsersError": "Couldn't load users.",
     "loadingUsers": "Loading users…",

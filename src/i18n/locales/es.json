@@ -221,7 +221,13 @@
     "delete": "Eliminar",
     "confirmDelete": "¿Eliminar la rutina \"{{name}}\"?",
     "daysCount_one": "{{count}} día",
-    "daysCount_other": "{{count}} días"
+    "daysCount_other": "{{count}} días",
+    "mine": "Mis rutinas",
+    "catalog": "Catálogo",
+    "noneOwn": "Aún no has creado ninguna rutina.",
+    "search": "Buscar rutina…",
+    "allAreas": "Todas las áreas",
+    "noneFound": "No se encontraron rutinas."
   },
   "menu": {
     "account": "Mi cuenta",
@@ -388,6 +394,7 @@
     "baseRoutines": "Rutinas base ({{count}})",
     "baseExercises": "Ejercicios base ({{count}})",
     "newBaseExercise": "+ Nuevo ejercicio base",
+    "newBaseRoutine": "+ Nueva rutina base",
     "usersSubtitle": "Rutinas y ejercicios que cada usuario crea (sin datos personales).",
     "loadUsersError": "No se pudieron cargar los usuarios.",
     "loadingUsers": "Cargando usuarios…",

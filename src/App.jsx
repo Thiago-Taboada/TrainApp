@@ -61,6 +61,7 @@ export default function App() {
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/exercise/new" element={<AdminExerciseEditor />} />
           <Route path="/admin/exercise/:exerciseId" element={<AdminExerciseEditor />} />
+          <Route path="/admin/routine/new" element={<RoutineEditor admin />} />
           <Route path="/admin/routine/:routineId" element={<RoutineEditor admin />} />
           <Route path="/admin/users" element={<AdminUsers />} />
           <Route path="/admin/users/:uid" element={<AdminUserDetail />} />

@@ -221,7 +221,13 @@
     "delete": "Excluir",
     "confirmDelete": "Excluir a rotina \"{{name}}\"?",
     "daysCount_one": "{{count}} dia",
-    "daysCount_other": "{{count}} dias"
+    "daysCount_other": "{{count}} dias",
+    "mine": "Minhas rotinas",
+    "catalog": "Catálogo",
+    "noneOwn": "Você ainda não criou nenhuma rotina.",
+    "search": "Buscar rotina…",
+    "allAreas": "Todas as áreas",
+    "noneFound": "Nenhuma rotina encontrada."
   },
   "menu": {
     "account": "Minha conta",
@@ -388,6 +394,7 @@
     "baseRoutines": "Rotinas base ({{count}})",
     "baseExercises": "Exercícios base ({{count}})",
     "newBaseExercise": "+ Novo exercício base",
+    "newBaseRoutine": "+ Nova rotina base",
     "usersSubtitle": "Rotinas e exercícios que cada usuário cria (sem dados pessoais).",
     "loadUsersError": "Não foi possível carregar os usuários.",
     "loadingUsers": "Carregando usuários…",

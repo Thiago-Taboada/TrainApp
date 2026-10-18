@@ -107,6 +107,9 @@ export default function Admin() {
             </Link>
           ))}
         </div>
+        <Link to="/admin/routine/new" className="btn-ghost mt-3 w-full">
+          {t('admin.newBaseRoutine')}
+        </Link>
       </section>
 
       {/* Base exercises */}

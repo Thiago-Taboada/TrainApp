@@ -56,7 +56,7 @@ export function CatalogProvider({ children }) {
   // Base catalog lives in Firestore (/catalog). null = not loaded yet.
   const [baseExercises, setBaseExercises] = useState(null)
   const [baseRoutines, setBaseRoutines] = useState(null)
-  const [activeRoutineIds, setActiveRoutineIds] = useState([ROUTINE_TEMPLATE.id])
+  const [activeRoutineIds, setActiveRoutineIds] = useState([])
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -69,7 +69,7 @@ export function CatalogProvider({ children }) {
       // Signed out: reset to defaults and stop loading.
       setUserExercises([])
       setUserRoutines([])
-      setActiveRoutineIds([ROUTINE_TEMPLATE.id])
+      setActiveRoutineIds([])
       setProfile(null)
       setLoading(false)
       return
@@ -106,7 +106,7 @@ export function CatalogProvider({ children }) {
       doc(db, 'users', user.uid),
       (snap) => {
         const data = snap.data()
-        setActiveRoutineIds(data?.activeRoutineIds ?? [ROUTINE_TEMPLATE.id])
+        setActiveRoutineIds(data?.activeRoutineIds ?? [])
         setProfile(data ?? {})
         release()
       },
@@ -401,7 +401,7 @@ export function CatalogProvider({ children }) {
       await setDoc(
         doc(db, 'users', user.uid),
         {
-          activeRoutineIds: ids.length ? ids : [ROUTINE_TEMPLATE.id],
+          activeRoutineIds: ids,
           updatedAt: serverTimestamp(),
         },
         { merge: true },
