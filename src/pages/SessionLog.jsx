@@ -352,7 +352,7 @@ function ExerciseEntry({ entry, exercise, block, onUpdateSet, onAddSet, onRemove
       <div className="mb-3 flex items-start justify-between gap-2">
         <div>
           <Link to={`/biblioteca/${entry.exerciseId}`} className="font-semibold text-slate-200 hover:text-brand-300">
-            {exercise?.name ?? entry.exerciseId}
+            {exercise?.name ?? '[Ejercicio eliminado]'}
           </Link>
           {block && (
             <p className="text-xs text-slate-400">

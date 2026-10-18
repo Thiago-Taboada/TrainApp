@@ -234,7 +234,7 @@ export default function RoutineEditor({ admin = false }) {
                           return (
                             <div key={i} className="rounded-xl border border-slate-500/15 bg-ink-900/60 p-3">
                               <div className="mb-2 flex items-center justify-between">
-                                <p className="font-semibold text-sm">{ex?.name ?? b.exerciseId}</p>
+                                <p className="font-semibold text-sm">{ex?.name ?? '[Ejercicio eliminado]'}</p>
                                 <button onClick={() => removeBlock(d.weekday, i)} className="text-slate-400 hover:text-red-500">×</button>
                               </div>
                               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -366,7 +366,7 @@ function TemplateView({ routine, exercises, navigate }) {
                 <ul className="mt-2 space-y-1 text-sm text-slate-300">
                   {d.blocks.map((b, i) => (
                     <li key={i} className="flex justify-between">
-                      <span>{exercises.find((e) => e.id === b.exerciseId)?.name ?? b.exerciseId}</span>
+                      <span>{exercises.find((e) => e.id === b.exerciseId)?.name ?? '[Ejercicio eliminado]'}</span>
                       <span className="font-semibold text-slate-400">{b.sets}×{b.repsText}</span>
                     </li>
                   ))}

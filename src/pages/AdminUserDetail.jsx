@@ -82,7 +82,7 @@ export default function AdminUserDetail() {
                               <ul className="mt-1.5 space-y-1 text-sm text-slate-400">
                                 {(d.blocks ?? []).map((b, i) => (
                                   <li key={i} className="flex justify-between">
-                                    <span>{nameById.get(b.exerciseId) ?? b.exerciseId}</span>
+                                    <span>{nameById.get(b.exerciseId) ?? '[Ejercicio eliminado]'}</span>
                                     <span className="font-mono text-slate-500">{b.sets}×{b.repsText}</span>
                                   </li>
                                 ))}

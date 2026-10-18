@@ -15,7 +15,7 @@ function buildSteps(day, exercises) {
     for (let s = 0; s < (block.sets || 1); s++) {
       steps.push({
         exerciseId: block.exerciseId,
-        name: ex?.name ?? block.exerciseId,
+        name: ex?.name ?? '[Ejercicio eliminado]',
         description: ex?.description ?? '',
         cues: ex?.cues ?? [],
         tracking: ex?.tracking ?? 'reps',

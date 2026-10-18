@@ -71,7 +71,7 @@ export default function Today() {
                   const ex = exercises.find((e) => e.id === b.exerciseId)
                   return (
                     <div key={i} className="flex items-center justify-between text-sm">
-                      <span className="text-slate-300">{ex?.name ?? b.exerciseId}</span>
+                      <span className="text-slate-300">{ex?.name ?? '[Ejercicio eliminado]'}</span>
                       <span className="font-mono font-semibold text-brand-300">
                         {b.sets}×{b.repsText}
                       </span>
