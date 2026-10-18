@@ -22,6 +22,7 @@ import { db } from '../lib/firebase'
 import { useAuth } from '../context/AuthContext.jsx'
 import { EXERCISES, ROUTINE_TEMPLATE } from '../data/seedData'
 import { BASE_ROUTINE_SLOTS } from '../lib/points'
+import { applyTheme, DEFAULT_THEME } from '../lib/themes'
 
 // Delete every doc in a user subcollection, in batches (Firestore caps at 500).
 async function wipeSubcollection(uid, name) {
@@ -237,6 +238,41 @@ export function CatalogProvider({ children }) {
   // Derived reward fields from the profile.
   const pointsSpent = profile?.pointsSpent ?? 0
   const routineSlots = profile?.routineSlots ?? BASE_ROUTINE_SLOTS
+  const ownedThemes = profile?.ownedThemes?.length ? profile.ownedThemes : [DEFAULT_THEME]
+  const activeTheme = profile?.theme ?? DEFAULT_THEME
+
+  // Apply the active theme to the document whenever it changes.
+  useEffect(() => {
+    applyTheme(activeTheme)
+  }, [activeTheme])
+
+  // Buy a theme: spend points and add it to owned.
+  const buyTheme = useCallback(
+    async (themeId, cost) => {
+      if (!user) throw new Error('No autenticado')
+      const owned = [...new Set([...ownedThemes, themeId])]
+      await setDoc(
+        doc(db, 'users', user.uid),
+        { pointsSpent: pointsSpent + cost, ownedThemes: owned, updatedAt: serverTimestamp() },
+        { merge: true },
+      )
+    },
+    [user, pointsSpent, ownedThemes],
+  )
+
+  // Activate an already-owned theme.
+  const setTheme = useCallback(
+    async (themeId) => {
+      if (!user) throw new Error('No autenticado')
+      applyTheme(themeId) // instant feedback
+      await setDoc(
+        doc(db, 'users', user.uid),
+        { theme: themeId, updatedAt: serverTimestamp() },
+        { merge: true },
+      )
+    },
+    [user],
+  )
 
   // Buy a routine slot: spend points and raise the slot limit by 1 (atomic-ish
   // merge write). The caller checks affordability.
@@ -365,6 +401,10 @@ export function CatalogProvider({ children }) {
     pointsSpent,
     routineSlots,
     buyRoutineSlot,
+    ownedThemes,
+    activeTheme,
+    buyTheme,
+    setTheme,
     // admin / base catalog
     catalogSeeded,
     seedCatalog,

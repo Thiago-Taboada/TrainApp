@@ -4,18 +4,20 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Neon cyan = primary accent ("brand")
+        // Accent ("brand") — driven by CSS variables so themes can swap it.
+        // Each var holds space-separated RGB channels (e.g. "0 240 255") so
+        // Tailwind opacity modifiers like bg-brand-500/15 keep working.
         brand: {
-          50: '#e6ffff',
-          100: '#b3fcff',
-          200: '#80f9ff',
-          300: '#4df6ff',
-          400: '#1af2ff',
-          500: '#00f0ff',
-          600: '#00c2d6',
-          700: '#0094a3',
-          800: '#036d78',
-          900: '#083e45',
+          50: 'rgb(var(--brand-50) / <alpha-value>)',
+          100: 'rgb(var(--brand-100) / <alpha-value>)',
+          200: 'rgb(var(--brand-200) / <alpha-value>)',
+          300: 'rgb(var(--brand-300) / <alpha-value>)',
+          400: 'rgb(var(--brand-400) / <alpha-value>)',
+          500: 'rgb(var(--brand-500) / <alpha-value>)',
+          600: 'rgb(var(--brand-600) / <alpha-value>)',
+          700: 'rgb(var(--brand-700) / <alpha-value>)',
+          800: 'rgb(var(--brand-800) / <alpha-value>)',
+          900: 'rgb(var(--brand-900) / <alpha-value>)',
         },
         // Magenta secondary accent
         neon: {
@@ -41,9 +43,9 @@ export default {
         mono: ['"Share Tech Mono"', 'ui-monospace', 'monospace'],
       },
       boxShadow: {
-        neon: '0 0 5px rgba(0,240,255,.5), 0 0 20px rgba(0,240,255,.25)',
+        neon: '0 0 5px rgb(var(--brand-500) / .5), 0 0 20px rgb(var(--brand-500) / .25)',
         'neon-pink': '0 0 5px rgba(255,43,214,.5), 0 0 20px rgba(255,43,214,.25)',
-        'neon-soft': '0 0 0 1px rgba(0,240,255,.25), 0 0 24px rgba(0,240,255,.08)',
+        'neon-soft': '0 0 0 1px rgb(var(--brand-500) / .25), 0 0 24px rgb(var(--brand-500) / .08)',
       },
       keyframes: {
         flicker: {
