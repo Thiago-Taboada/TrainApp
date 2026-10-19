@@ -1,19 +1,27 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useCatalog } from '../hooks/useCatalog'
 import { CATEGORIES, MUSCLE_GROUPS, TRACKING_TYPES } from '../data/seedData'
-import { localized, localizedList, mergeLang, mergeLangList } from '../lib/i18nContent'
+import {
+  toLangMap,
+  toLangMapList,
+  fromLangMap,
+  fromLangMapList,
+} from '../lib/i18nContent'
+import LangTabs from '../components/LangTabs.jsx'
 import Spinner from '../components/Spinner.jsx'
 
+const EMPTY_MAP = { es: '', en: '', pt: '' }
+
 const EMPTY = {
-  name: '',
+  name: { ...EMPTY_MAP },
   category: 'strength',
   tracking: 'reps',
   muscleGroups: [],
-  equipment: '',
-  description: '',
-  cues: '',
+  equipment: { ...EMPTY_MAP },
+  description: { ...EMPTY_MAP },
+  cues: { ...EMPTY_MAP },
 }
 
 export default function ExerciseEditor() {
@@ -23,11 +31,9 @@ export default function ExerciseEditor() {
   const navigate = useNavigate()
   const { loading, exercises, saveExercise, deleteExercise } = useCatalog()
   const [form, setForm] = useState(EMPTY)
+  const [draftLang, setDraftLang] = useState((i18n.language || 'es').split('-')[0])
   const [saving, setSaving] = useState(false)
   const [ready, setReady] = useState(false)
-  // Original exercise (with its full multilingual fields) so save can merge the
-  // edited active-language values back without dropping other languages.
-  const originalRef = useRef(null)
 
   const editing = Boolean(exerciseId)
 
@@ -36,15 +42,14 @@ export default function ExerciseEditor() {
     if (editing) {
       const ex = exercises.find((e) => e.id === exerciseId)
       if (ex) {
-        originalRef.current = ex
         setForm({
-          name: localized(ex.name, lang),
+          name: toLangMap(ex.name, lang),
           category: ex.category ?? 'strength',
           tracking: ex.tracking ?? 'reps',
           muscleGroups: ex.muscleGroups ?? [],
-          equipment: localizedList(ex.equipment, lang).join(', '),
-          description: localized(ex.description, lang),
-          cues: localizedList(ex.cues, lang).join('\n'),
+          equipment: toLangMapList(ex.equipment, ', ', lang),
+          description: toLangMap(ex.description, lang),
+          cues: toLangMapList(ex.cues, '\n', lang),
           id: ex.id,
           isCustom: ex.isCustom,
         })
@@ -58,6 +63,11 @@ export default function ExerciseEditor() {
   const isBaseExercise = editing && form.isCustom === false
   const canEdit = !isBaseExercise
 
+  // Update one text field in the currently-edited draft language.
+  function setField(field, value) {
+    setForm((f) => ({ ...f, [field]: { ...f[field], [draftLang]: value } }))
+  }
+
   function toggleMuscle(key) {
     setForm((f) => ({
       ...f,
@@ -68,22 +78,22 @@ export default function ExerciseEditor() {
   }
 
   async function handleSave() {
-    if (!form.name.trim()) {
+    const name = fromLangMap(form.name)
+    if (Object.keys(name).length === 0) {
       alert(t('exerciseEditor.needName'))
       return
     }
     setSaving(true)
     try {
-      const orig = originalRef.current ?? {}
       await saveExercise({
         id: editing ? exerciseId : undefined,
-        name: mergeLang(orig.name, form.name.trim(), lang),
+        name,
         category: form.category,
         tracking: form.tracking,
         muscleGroups: form.muscleGroups,
-        equipment: mergeLangList(orig.equipment, splitList(form.equipment, ','), lang),
-        description: mergeLang(orig.description, form.description.trim(), lang),
-        cues: mergeLangList(orig.cues, splitList(form.cues, '\n'), lang),
+        equipment: fromLangMapList(form.equipment, ','),
+        description: fromLangMap(form.description),
+        cues: fromLangMapList(form.cues, '\n'),
       })
       navigate('/library')
     } catch (err) {
@@ -116,12 +126,18 @@ export default function ExerciseEditor() {
         </div>
       )}
 
+      {canEdit && (
+        <div className="flex items-center justify-between gap-3">
+          <LangTabs value={draftLang} onChange={setDraftLang} label={t('editorLang.editingIn')} />
+        </div>
+      )}
+
       <div className="card space-y-4 p-5">
         <div>
           <label className="label mb-1.5">{t('exerciseEditor.name')}</label>
           <input
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            value={form.name[draftLang]}
+            onChange={(e) => setField('name', e.target.value)}
             disabled={!canEdit}
             placeholder={t('exerciseEditor.namePlaceholder')}
             className="input"
@@ -185,8 +201,8 @@ export default function ExerciseEditor() {
         <div>
           <label className="label mb-1.5">{t('exerciseEditor.equipment')}</label>
           <input
-            value={form.equipment}
-            onChange={(e) => setForm({ ...form, equipment: e.target.value })}
+            value={form.equipment[draftLang]}
+            onChange={(e) => setField('equipment', e.target.value)}
             disabled={!canEdit}
             placeholder={t('exerciseEditor.equipmentPlaceholder')}
             className="input"
@@ -196,8 +212,8 @@ export default function ExerciseEditor() {
         <div>
           <label className="label mb-1.5">{t('exerciseEditor.description')}</label>
           <textarea
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            value={form.description[draftLang]}
+            onChange={(e) => setField('description', e.target.value)}
             disabled={!canEdit}
             rows={3}
             placeholder={t('exerciseEditor.descriptionPlaceholder')}
@@ -208,8 +224,8 @@ export default function ExerciseEditor() {
         <div>
           <label className="label mb-1.5">{t('exerciseEditor.cues')}</label>
           <textarea
-            value={form.cues}
-            onChange={(e) => setForm({ ...form, cues: e.target.value })}
+            value={form.cues[draftLang]}
+            onChange={(e) => setField('cues', e.target.value)}
             disabled={!canEdit}
             rows={3}
             placeholder={t('exerciseEditor.cuesPlaceholder')}
@@ -232,13 +248,6 @@ export default function ExerciseEditor() {
       )}
     </div>
   )
-}
-
-function splitList(str, sep) {
-  return (str || '')
-    .split(sep)
-    .map((s) => s.trim())
-    .filter(Boolean)
 }
 
 function ChevronLeft() {

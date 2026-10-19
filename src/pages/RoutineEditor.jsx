@@ -1,13 +1,15 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useCatalog } from '../hooks/useCatalog'
 import { SESSION_TYPE_META, WEEKDAYS } from '../data/seedData'
 import { formatRest } from '../lib/sessions'
-import { localized, mergeLang } from '../lib/i18nContent'
+import { localized, toLangMap, fromLangMap, mergeLang } from '../lib/i18nContent'
+import LangTabs from '../components/LangTabs.jsx'
 import Spinner from '../components/Spinner.jsx'
 
 const SESSION_TYPE_KEYS = ['strength', 'flexibility', 'mobility', 'rest']
+const EMPTY_MAP = { es: '', en: '', pt: '' }
 
 // Trilingual default label per session type (used when a day has no custom
 // label). Keeps the persisted base-catalog label multilingual.
@@ -22,8 +24,8 @@ function emptyDays() {
   return WEEKDAYS.map((w) => ({
     weekday: w.key,
     sessionType: 'rest',
-    label: '',
-    content: '',
+    label: { ...EMPTY_MAP },
+    content: { ...EMPTY_MAP },
     blocks: [],
   }))
 }
@@ -41,15 +43,13 @@ export default function RoutineEditor({ admin = false }) {
   const backTo = admin ? '/admin' : '/routines'
 
   const editing = Boolean(routineId)
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
+  const [name, setName] = useState({ ...EMPTY_MAP })
+  const [description, setDescription] = useState({ ...EMPTY_MAP })
   const [days, setDays] = useState(emptyDays())
   const [openDay, setOpenDay] = useState('monday')
+  const [draftLang, setDraftLang] = useState((i18n.language || 'es').split('-')[0])
   const [saving, setSaving] = useState(false)
   const [ready, setReady] = useState(false)
-  // Original routine (full multilingual fields) so save merges the edited
-  // active-language values without dropping other languages.
-  const originalRef = useRef(null)
 
   const existing = useMemo(
     () => routines.find((r) => r.id === routineId),
@@ -60,12 +60,9 @@ export default function RoutineEditor({ admin = false }) {
   useEffect(() => {
     if (loading || ready) return
     if (editing && existing) {
-      originalRef.current = existing
-      setName(localized(existing.name, lang))
-      setDescription(localized(existing.description, lang))
-      // normalize to all 7 weekdays; labels/content shown in the active lang.
-      // We keep the ORIGINAL (multilingual) label/content on `_origLabel` /
-      // `_origContent` so save can merge instead of flattening.
+      setName(toLangMap(existing.name, lang))
+      setDescription(toLangMap(existing.description, lang))
+      // normalize to all 7 weekdays; label/content become per-language maps.
       const base = emptyDays()
       for (const d of existing.days ?? []) {
         const idx = base.findIndex((x) => x.weekday === d.weekday)
@@ -73,10 +70,8 @@ export default function RoutineEditor({ admin = false }) {
           base[idx] = {
             ...base[idx],
             ...d,
-            label: localized(d.label, lang),
-            content: localized(d.content, lang),
-            _origLabel: d.label,
-            _origContent: d.content,
+            label: toLangMap(d.label, lang),
+            content: toLangMap(d.content, lang),
             blocks: d.blocks ?? [],
           }
         }
@@ -113,6 +108,15 @@ export default function RoutineEditor({ admin = false }) {
     setDays((prev) => prev.map((d) => (d.weekday === weekday ? { ...d, ...patch } : d)))
   }
 
+  // Update a day's label text in the currently-edited draft language.
+  function updateDayLabel(weekday, value) {
+    setDays((prev) =>
+      prev.map((d) =>
+        d.weekday === weekday ? { ...d, label: { ...d.label, [draftLang]: value } } : d,
+      ),
+    )
+  }
+
   function addBlock(weekday, exerciseId) {
     if (!exerciseId) return
     updateDayBlocks(weekday, (blocks) => [
@@ -136,22 +140,19 @@ export default function RoutineEditor({ admin = false }) {
   }
 
   async function handleSave() {
-    if (!name.trim()) {
+    const nameObj = fromLangMap(name)
+    if (Object.keys(nameObj).length === 0) {
       alert(t('routineEditor.needName'))
       return
     }
     setSaving(true)
     try {
-      // Only persist days that have content or a non-rest type.
-      // label/content keep their multilingual shape: the edited active-language
-      // value is merged into the day's original object; other languages survive.
+      // label/content are kept as multilingual { es, en, pt } objects. Empty
+      // label falls back to the trilingual default for the session type.
       const cleanDays = days.map((d) => {
-        const editedLabel = d.label?.trim()
-        const label = editedLabel
-          ? mergeLang(d._origLabel, editedLabel, lang)
-          : defaultLabel(d.sessionType)
-        const editedContent = d.content?.trim()
-        const content = editedContent ? mergeLang(d._origContent, editedContent, lang) : ''
+        const labelObj = fromLangMap(d.label)
+        const label = Object.keys(labelObj).length ? labelObj : defaultLabel(d.sessionType)
+        const content = fromLangMap(d.content)
         return {
           weekday: d.weekday,
           sessionType: d.sessionType,
@@ -170,11 +171,10 @@ export default function RoutineEditor({ admin = false }) {
         }),
         }
       })
-      const orig = originalRef.current ?? {}
       const id = await saveRoutine({
         id: editing ? routineId : undefined,
-        name: mergeLang(orig.name, name.trim(), lang),
-        description: mergeLang(orig.description, description.trim(), lang),
+        name: nameObj,
+        description: fromLangMap(description),
         days: cleanDays,
       })
       navigate(backTo)
@@ -203,15 +203,18 @@ export default function RoutineEditor({ admin = false }) {
         {editing ? t('routineEditor.editTitle') : t('routineEditor.newTitle')}
       </h1>
 
+      <LangTabs value={draftLang} onChange={setDraftLang} label={t('editorLang.editingIn')} />
+      <p className="-mt-2 text-xs text-slate-500">{t('editorLang.hint')}</p>
+
       {/* Meta */}
       <div className="card space-y-4 p-5">
         <div>
           <label className="label mb-1.5">{t('routineEditor.name')}</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('routineEditor.namePlaceholder')} className="input" />
+          <input value={name[draftLang]} onChange={(e) => setName({ ...name, [draftLang]: e.target.value })} placeholder={t('routineEditor.namePlaceholder')} className="input" />
         </div>
         <div>
           <label className="label mb-1.5">{t('routineEditor.description')}</label>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder={t('routineEditor.descriptionPlaceholder')} className="input resize-none" />
+          <textarea value={description[draftLang]} onChange={(e) => setDescription({ ...description, [draftLang]: e.target.value })} rows={2} placeholder={t('routineEditor.descriptionPlaceholder')} className="input resize-none" />
         </div>
       </div>
 
@@ -262,8 +265,8 @@ export default function RoutineEditor({ admin = false }) {
                       <div>
                         <label className="label mb-1.5">{t('routineEditor.sessionName')}</label>
                         <input
-                          value={d.label}
-                          onChange={(e) => updateDay(d.weekday, { label: e.target.value })}
+                          value={d.label[draftLang]}
+                          onChange={(e) => updateDayLabel(d.weekday, e.target.value)}
                           placeholder={t('sessionTypes.' + d.sessionType)}
                           className="input"
                         />

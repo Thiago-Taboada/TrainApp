@@ -1,20 +1,28 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useCatalog } from '../hooks/useCatalog'
 import { CATEGORIES, MUSCLE_GROUPS, TRACKING_TYPES } from '../data/seedData'
-import { localized, localizedList, mergeLang, mergeLangList } from '../lib/i18nContent'
+import {
+  toLangMap,
+  toLangMapList,
+  fromLangMap,
+  fromLangMapList,
+} from '../lib/i18nContent'
+import LangTabs from '../components/LangTabs.jsx'
 import Spinner from '../components/Spinner.jsx'
 
+const EMPTY_MAP = { es: '', en: '', pt: '' }
+
 const EMPTY = {
-  name: '',
+  name: { ...EMPTY_MAP },
   category: 'strength',
   tracking: 'reps',
   muscleGroups: [],
-  equipment: '',
-  description: '',
-  cues: '',
+  equipment: { ...EMPTY_MAP },
+  description: { ...EMPTY_MAP },
+  cues: { ...EMPTY_MAP },
 }
 
 export default function AdminExerciseEditor() {
@@ -25,9 +33,9 @@ export default function AdminExerciseEditor() {
   const { isAdmin, loading: authLoading } = useAuth()
   const { loading, exercises, saveBaseExercise, deleteBaseExercise } = useCatalog()
   const [form, setForm] = useState(EMPTY)
+  const [draftLang, setDraftLang] = useState((i18n.language || 'es').split('-')[0])
   const [saving, setSaving] = useState(false)
   const [ready, setReady] = useState(false)
-  const originalRef = useRef(null)
 
   const editing = Boolean(exerciseId)
 
@@ -36,15 +44,14 @@ export default function AdminExerciseEditor() {
     if (editing) {
       const ex = exercises.find((e) => e.id === exerciseId)
       if (ex) {
-        originalRef.current = ex
         setForm({
-          name: localized(ex.name, lang),
+          name: toLangMap(ex.name, lang),
           category: ex.category ?? 'strength',
           tracking: ex.tracking ?? 'reps',
           muscleGroups: ex.muscleGroups ?? [],
-          equipment: localizedList(ex.equipment, lang).join(', '),
-          description: localized(ex.description, lang),
-          cues: localizedList(ex.cues, lang).join('\n'),
+          equipment: toLangMapList(ex.equipment, ', ', lang),
+          description: toLangMap(ex.description, lang),
+          cues: toLangMapList(ex.cues, '\n', lang),
           id: ex.id,
         })
       }
@@ -54,6 +61,10 @@ export default function AdminExerciseEditor() {
 
   if (authLoading || loading) return <Spinner />
   if (!isAdmin) return <Navigate to="/" replace />
+
+  function setField(field, value) {
+    setForm((f) => ({ ...f, [field]: { ...f[field], [draftLang]: value } }))
+  }
 
   function toggleMuscle(key) {
     setForm((f) => ({
@@ -65,22 +76,22 @@ export default function AdminExerciseEditor() {
   }
 
   async function handleSave() {
-    if (!form.name.trim()) {
+    const name = fromLangMap(form.name)
+    if (Object.keys(name).length === 0) {
       alert(t('admin.needName'))
       return
     }
     setSaving(true)
     try {
-      const orig = originalRef.current ?? {}
       await saveBaseExercise({
         id: editing ? exerciseId : undefined,
-        name: mergeLang(orig.name, form.name.trim(), lang),
+        name,
         category: form.category,
         tracking: form.tracking,
         muscleGroups: form.muscleGroups,
-        equipment: mergeLangList(orig.equipment, splitList(form.equipment, ','), lang),
-        description: mergeLang(orig.description, form.description.trim(), lang),
-        cues: mergeLangList(orig.cues, splitList(form.cues, '\n'), lang),
+        equipment: fromLangMapList(form.equipment, ','),
+        description: fromLangMap(form.description),
+        cues: fromLangMapList(form.cues, '\n'),
       })
       navigate('/admin')
     } catch (err) {
@@ -107,10 +118,12 @@ export default function AdminExerciseEditor() {
       </h1>
       <p className="-mt-3 text-xs text-neon-amber">{t('admin.affectsAll')}</p>
 
+      <LangTabs value={draftLang} onChange={setDraftLang} label={t('editorLang.editingIn')} />
+
       <div className="card space-y-4 p-5">
         <div>
           <label className="label mb-1.5">{t('admin.name')}</label>
-          <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input" />
+          <input value={form.name[draftLang]} onChange={(e) => setField('name', e.target.value)} className="input" />
         </div>
 
         <div>
@@ -153,17 +166,17 @@ export default function AdminExerciseEditor() {
 
         <div>
           <label className="label mb-1.5">{t('admin.equipment')}</label>
-          <input value={form.equipment} onChange={(e) => setForm({ ...form, equipment: e.target.value })} className="input" />
+          <input value={form.equipment[draftLang]} onChange={(e) => setField('equipment', e.target.value)} className="input" />
         </div>
 
         <div>
           <label className="label mb-1.5">{t('admin.description')}</label>
-          <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} className="input resize-none" />
+          <textarea value={form.description[draftLang]} onChange={(e) => setField('description', e.target.value)} rows={3} className="input resize-none" />
         </div>
 
         <div>
           <label className="label mb-1.5">{t('admin.cues')}</label>
-          <textarea value={form.cues} onChange={(e) => setForm({ ...form, cues: e.target.value })} rows={3} className="input resize-none" />
+          <textarea value={form.cues[draftLang]} onChange={(e) => setField('cues', e.target.value)} rows={3} className="input resize-none" />
         </div>
       </div>
 
@@ -179,10 +192,6 @@ export default function AdminExerciseEditor() {
       </div>
     </div>
   )
-}
-
-function splitList(str, sep) {
-  return (str || '').split(sep).map((s) => s.trim()).filter(Boolean)
 }
 
 function ChevronLeft() {

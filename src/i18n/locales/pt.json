@@ -426,6 +426,10 @@
     "saveErrorFallback": "erro",
     "confirmDeleteBase": "Excluir este exercício base? Afeta todos os usuários."
   },
+  "editorLang": {
+    "editingIn": "Editando em",
+    "hint": "Troque de idioma para adicionar a tradução de cada campo. Cada idioma é salvo separadamente."
+  },
   "exerciseEditor": {
     "back": "Biblioteca",
     "editTitle": "Editar exercício",

@@ -426,6 +426,10 @@
     "saveErrorFallback": "error",
     "confirmDeleteBase": "Delete this base exercise? It affects all users."
   },
+  "editorLang": {
+    "editingIn": "Editing in",
+    "hint": "Switch language to add the translation for each field. Each language is saved separately."
+  },
   "exerciseEditor": {
     "back": "Library",
     "editTitle": "Edit exercise",
