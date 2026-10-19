@@ -204,6 +204,9 @@ export default function SessionLog() {
         sessionFatigue: fatigue,
         notes: notes.trim(),
         entries: trained ? cleanEntries : [],
+        // Hour of day the session was saved (local), for time-based achievements.
+        // Only set when training; preserved on edits of an existing trained log.
+        loggedHour: trained ? (existing?.loggedHour ?? new Date().getHours()) : null,
       })
       clearDraft(draftKey)
       navigate('/schedule')

@@ -16,6 +16,7 @@ import Routines from './pages/Routines.jsx'
 import RoutineEditor from './pages/RoutineEditor.jsx'
 import ExerciseEditor from './pages/ExerciseEditor.jsx'
 import Account from './pages/Account.jsx'
+import Achievements from './pages/Achievements.jsx'
 import WorkoutRunner from './pages/WorkoutRunner.jsx'
 import Store from './pages/Store.jsx'
 import Admin from './pages/Admin.jsx'
@@ -57,6 +58,7 @@ export default function App() {
           <Route path="/workout/:weekday" element={<WorkoutRunner />} />
           <Route path="/analysis" element={<Analysis />} />
           <Route path="/account" element={<Account />} />
+          <Route path="/achievements" element={<Achievements />} />
           <Route path="/store" element={<Store />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/admin/exercise/new" element={<AdminExerciseEditor />} />

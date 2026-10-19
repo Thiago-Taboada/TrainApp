@@ -8,7 +8,7 @@ import { CheckIcon, RestIcon, PlayIcon, FlameIcon, CoinIcon } from '../component
 import { WEEKDAYS } from '../data/seedData'
 import { sessionForDay, metaFor } from '../lib/sessions'
 import { computeStreak } from '../lib/streak'
-import { computeBalance } from '../lib/points'
+import { useAchievements } from '../hooks/useAchievements'
 import { toISODate, weekdayKey, weekDates, formatLong } from '../lib/dates'
 import Spinner from '../components/Spinner.jsx'
 import WeightReminder from '../components/WeightReminder.jsx'
@@ -17,8 +17,9 @@ export default function Today() {
   const { user } = useAuth()
   const { t, i18n } = useTranslation()
   const lang = i18n.language
-  const { exercises, activeRoutines, pointsSpent, loading } = useCatalog()
+  const { exercises, activeRoutines, loading } = useCatalog()
   const { logs, loading: logsLoading } = useLogs()
+  const { balance: points } = useAchievements()
 
   if (loading || logsLoading) return <Spinner />
 
@@ -37,8 +38,6 @@ export default function Today() {
   const trainedThisWeek = logs.filter((l) => week.includes(l.date) && l.trained).length
 
   const { current: streak, best: bestStreak } = computeStreak(logs, activeRoutines)
-  const trainedCount = logs.filter((l) => l.trained).length
-  const points = computeBalance(trainedCount, bestStreak, pointsSpent)
 
   const firstName = (user?.displayName ?? '').split(' ')[0] || 'atleta'
   const hasActive = activeRoutines.length > 0

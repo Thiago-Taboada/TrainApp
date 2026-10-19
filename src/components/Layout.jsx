@@ -13,6 +13,7 @@ const NAV = [
 // Labels for routes that aren't in the main nav (shown in the header subtitle).
 const EXTRA_LABELS = [
   { to: '/account', key: 'account' },
+  { to: '/achievements', key: 'achievements' },
   { to: '/store', key: 'store' },
   { to: '/admin', key: 'admin' },
   { to: '/session', key: 'session' },

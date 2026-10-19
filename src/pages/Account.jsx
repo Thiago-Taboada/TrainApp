@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next'
 import { computeStreak } from '../lib/streak'
 import { THEMES } from '../lib/themes'
 import { LANGUAGES } from '../i18n'
+import AchievementCard from '../components/AchievementCard.jsx'
 import Spinner from '../components/Spinner.jsx'
 import { FlameIcon, CheckIcon } from '../components/icons.jsx'
 
@@ -198,6 +199,9 @@ export default function Account() {
         <Stat label={t('account.activeRoutines')} value={activeRoutines.length} tone="brand" />
         <Stat label={t('account.ownExercises')} value={exercises.filter((e) => e.isCustom).length} tone="pink" />
       </div>
+
+      {/* Achievements */}
+      <AchievementCard />
 
       {/* Theme selector (only themes you own) */}
       <div className="card p-5">

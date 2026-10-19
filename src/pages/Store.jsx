@@ -2,8 +2,8 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useCatalog } from '../hooks/useCatalog'
 import { useLogs } from '../hooks/useLogs'
-import { computeStreak } from '../lib/streak'
-import { computeBalance, SLOT_COST } from '../lib/points'
+import { useAchievements } from '../hooks/useAchievements'
+import { SLOT_COST } from '../lib/points'
 import { THEMES } from '../lib/themes'
 import Spinner from '../components/Spinner.jsx'
 import { CoinIcon, CheckIcon } from '../components/icons.jsx'
@@ -13,8 +13,6 @@ export default function Store() {
   const {
     routines,
     routineSlots,
-    pointsSpent,
-    activeRoutines,
     buyRoutineSlot,
     ownedThemes,
     activeTheme,
@@ -22,13 +20,11 @@ export default function Store() {
     setTheme,
     loading,
   } = useCatalog()
-  const { logs, loading: logsLoading } = useLogs()
+  const { loading: logsLoading } = useLogs()
+  const { balance: points } = useAchievements()
 
   if (loading || logsLoading) return <Spinner />
 
-  const trainedCount = logs.filter((l) => l.trained).length
-  const { best: bestStreak } = computeStreak(logs, activeRoutines)
-  const points = computeBalance(trainedCount, bestStreak, pointsSpent)
   const customCount = routines.filter((r) => r.isCustom).length
 
   async function buySlot() {

@@ -10,6 +10,52 @@
     "days": "días",
     "day": "día"
   },
+  "achievements": {
+    "title": "Logros",
+    "seeAll": "Ver todos",
+    "unlockedOf": "{{unlocked}} de {{total}}",
+    "unlocked": "Desbloqueado",
+    "locked": "Bloqueado",
+    "noneYet": "Aún no has desbloqueado logros. ¡Entrena para empezar!",
+    "latest": "Últimos logros",
+    "points": "+{{count}} pts",
+    "secretTitle": "Logro secreto",
+    "secretDesc": "Sigue entrenando para descubrirlo.",
+    "tiers": {
+      "easy": "Fáciles",
+      "medium": "Intermedios",
+      "hard": "Difíciles",
+      "epic": "Épicos",
+      "secret": "Secretos"
+    },
+    "items": {
+      "firstStep": { "title": "Primer paso", "desc": "Registra tu primer entrenamiento." },
+      "routineActivated": { "title": "Rutina activada", "desc": "Activa tu primera rutina." },
+      "onTheScale": { "title": "En la báscula", "desc": "Registra tu peso por primera vez." },
+      "personalTouch": { "title": "Toque personal", "desc": "Crea tu primer ejercicio o rutina." },
+      "weekDone": { "title": "Semana cumplida", "desc": "Completa todas las sesiones previstas de una semana." },
+      "tenSessions": { "title": "Diez sin falta", "desc": "Registra 10 entrenamientos." },
+      "fiftySessions": { "title": "Medio centenar", "desc": "Registra 50 entrenamientos." },
+      "toTheLimit": { "title": "Al límite", "desc": "Marca el esfuerzo \"al límite\" en 20 series." },
+      "toFailure": { "title": "Hasta el fallo", "desc": "Registra 10 series llevadas al fallo." },
+      "collector": { "title": "Coleccionista", "desc": "Prueba 15 ejercicios distintos." },
+      "streak7": { "title": "Racha de 7", "desc": "Alcanza una racha de 7 días." },
+      "streak30": { "title": "Racha de 30", "desc": "Alcanza una racha de 30 días." },
+      "centurion": { "title": "Centurión", "desc": "Registra 100 entrenamientos." },
+      "monthlyMarathon": { "title": "Maratón mensual", "desc": "Entrena al menos 20 días en un mismo mes." },
+      "fullBody": { "title": "Cuerpo completo", "desc": "Trabaja todos los grupos musculares." },
+      "shopper": { "title": "Comprador", "desc": "Canjea tu primer artículo en la tienda." },
+      "streak100": { "title": "Racha de 100", "desc": "Alcanza una racha de 100 días." },
+      "unstoppable": { "title": "Imparable", "desc": "Registra 365 entrenamientos." },
+      "loyal": { "title": "Fiel", "desc": "Un año desde tu primer registro." },
+      "points1k": { "title": "Mil y subiendo", "desc": "Acumula 1.000 Vortx Points ganados." },
+      "points3k": { "title": "Tres mil", "desc": "Acumula 3.000 Vortx Points ganados." },
+      "points5k": { "title": "Leyenda Vortx", "desc": "Acumula 5.000 Vortx Points ganados." },
+      "nightOwl": { "title": "Ave nocturna", "desc": "Registra un entrenamiento después de medianoche." },
+      "earlyBird": { "title": "Madrugador", "desc": "Registra un entrenamiento antes de las 6 de la mañana." },
+      "weekendWarrior": { "title": "Guerrero de fin de semana", "desc": "Entrena sábado y domingo la misma semana." }
+    }
+  },
   "nav": {
     "today": "Hoy",
     "exercises": "Ejercicios",
@@ -20,7 +66,8 @@
     "store": "Tienda",
     "admin": "Administración",
     "session": "Registro",
-    "workout": "Entrenamiento"
+    "workout": "Entrenamiento",
+    "achievements": "Logros"
   },
   "login": {
     "tagline": "// Libera tu potencial",

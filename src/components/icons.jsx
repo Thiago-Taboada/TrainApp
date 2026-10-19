@@ -66,3 +66,22 @@ export function StatusDot({ className = '', tone = 'brand' }) {
         : 'bg-brand-400 shadow-[0_0_8px_rgba(0,240,255,0.8)]'
   return <span className={`inline-block h-3.5 w-3.5 rounded-full ${toneClass} ${className}`} />
 }
+
+export function TrophyIcon({ className = 'h-6 w-6' }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M7 4h10v4a5 5 0 0 1-10 0V4z" />
+      <path d="M7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3" />
+      <path d="M9 14.5V17h6v-2.5M8 21h8M10 17v4M14 17v4" />
+    </svg>
+  )
+}
+
+export function LockIcon({ className = 'h-6 w-6' }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="5" y="11" width="14" height="9" rx="2" />
+      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+    </svg>
+  )
+}
